@@ -1,2 +1,22 @@
-# netplan-gre-tunnel-wizard
-MikroNetPlus: An interactive CLI wizard for configuring Netplan GRE Tunnels between Linux and MikroTik
+# 🚀 MikroNetPlus: Linux to MikroTik GRE Tunnel CLI Wizard
+
+این ابزار تعاملی به زبان پایتون طراحی شده است تا متخصصین شبکه بتوانند بدون ریسک قطع شدن اینترنت سرور اوبونتو، تونل‌های GRE خود را به صورت آنی و از طریق ابزار مدرن **Netplan** پیکربندی کنند.
+
+## 📺 آموزش ویدیوئی
+این پروژه بخشی از آموزش‌های کانال یوتیوب **Mikronet_plus** است. برای دیدن ویدیوی کامل راه اندازی و کانفیگ سمت میکروتیک، کانال ما را دنبال کنید:
+🔗 [لینک کانال یوتیوب شما یا لینک ویدیو]
+
+## ✨ قابلیت‌ها
+- دریافت تعاملی اطلاعات (IP ایران، خارج و رنج تونل) در محیط ترمینال.
+- ساخت فایل مجزا در نت‌پلان (`60-mikronet-tunnel.yaml`) جهت حفظ امنیت کارت شبکه اصلی سرور.
+- اعمال آنی و بدون قطعی تنظیمات لینوکس با ساختار ماژولار.
+
+## 🛠️ نحوه اجرا روی سرور اوبونتو
+برای اجرای این اسکریپت روی سرور خود، ابتدا فایل را دانلود کرده و سپس با دسترسی روت اجرا کنید:
+
+```bash
+wget https://raw.githubusercontent.com/Mikronet-plus/netplan-gre-tunnel-wizard/main/app_cli.py && sudo python3 app_cli.py
+sudo python3 app_cli.py
+
+📄 لایسنس (License)
+این پروژه تحت لایسنس GNU GPLv3 منتشر شده است. استفاده از کد با ذکر منبع و نام کانال Mikronet_plus بلامانع است.
