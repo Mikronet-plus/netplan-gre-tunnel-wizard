@@ -37,7 +37,6 @@ def ipv4_to_6to4(ipv4_str):
         return None
 
 def get_tunnel_metadata(path):
-    """استخراج نام اختصاصی و آی‌پی داخلی تونل از فایل کانفیگ"""
     if not os.path.exists(path):
         return None
     
@@ -46,24 +45,31 @@ def get_tunnel_metadata(path):
     
     with open(path, "r") as f:
         content = f.read()
-        # پیدا کردن نام از طریق کامنت اختصاصی ما
         name_match = re.search(r"# NAME:\s*(.*)", content)
         if name_match:
             tunnel_name = name_match.group(1).strip()
             
-        # پیدا کردن آی‌پی داخلی تونل
         ip_match = re.search(r"-\s*([\d\.]+)/?\d*", content)
         if ip_match:
             tunnel_ip = ip_match.group(1).strip()
             
     return {"name": tunnel_name, "ip": tunnel_ip}
 
-def force_up_interface(iface_name):
-    """قفل کردن وضعیت اینترفیس روی حالت UP به سبک میکروتیک"""
+def force_up_interface(iface_name, remote_tunnel_ip):
+    """اجبار هسته لینوکس به فعال‌سازی روتینگ و بیدار کردن اینترفیس بدون دخالت کاربر"""
     subprocess.run(["ip", "link", "set", "dev", iface_name, "up"])
     subprocess.run(["ip", "link", "set", "dev", iface_name, "arp", "off"])
+    
+    # کدهای بهینه‌سازی هسته
     subprocess.run(["sysctl", "-w", f"net.ipv4.conf.{iface_name}.disable_policy=1"], capture_output=True)
     subprocess.run(["sysctl", "-w", f"net.ipv4.conf.{iface_name}.disable_xfrm=1"], capture_output=True)
+    
+    # شلیک ترافیک پیش‌زمینه فوری برای باز شدن جدول روتینگ لینوکس
+    if remote_tunnel_ip:
+        # شبیه‌سازی درخواست مسیر
+        subprocess.run(["ip", "route", "get", remote_tunnel_ip], capture_output=True)
+        # پینگ بسیار سریع مخفی (فقط ۱ بسته با تایم‌اوت نیم‌ثانیه) جهت فیکس قطعی
+        subprocess.run(["ping", "-c", "1", "-W", "1", remote_tunnel_ip], capture_output=True)
 
 def manage_regular_gre():
     clear_screen()
@@ -77,6 +83,15 @@ def manage_regular_gre():
     remote = input(f"{C_YELLOW}🔹 2. Remote MikroTik Public IPv4: {C_END}").strip()
     tunnel_cidr = input(f"{C_YELLOW}🔹 3. Tunnel Internal IP (e.g., 10.10.10.1/30): {C_END}").strip()
     
+    # محاسبه اتوماتیک آی‌پی مقابل برای بیدار کردن هسته
+    try:
+        base_ip = tunnel_cidr.split('/')[0]
+        ip_parts = base_ip.split('.')
+        last_octet = int(ip_parts[3])
+        remote_tunnel_ip = f"{ip_parts[0]}.{ip_parts[1]}.{ip_parts[2]}.{last_octet + 1 if last_octet % 2 != 0 else last_octet - 1}"
+    except:
+        remote_tunnel_ip = ""
+
     print(f"\n{C_BOLD}📊 Preview Configuration [{t_name}]:{C_END}")
     print(f"  ▫️ Local IP  : {C_GREEN}{local}{C_END}")
     print(f"  ▫️ Remote IP : {C_GREEN}{remote}{C_END}")
@@ -89,9 +104,9 @@ def manage_regular_gre():
         
         print(f"\n{C_YELLOW}⏳ Applying Netplan...{C_END}")
         if subprocess.run(["netplan", "apply"]).returncode == 0:
-            time.sleep(1.5)
-            force_up_interface("gre-to-mikro")
-            print(f"\n{C_GREEN}{C_BOLD}✅ Tunnel '{t_name}' is now permanently UP like MikroTik!{C_END}")
+            time.sleep(1)
+            force_up_interface("gre-to-mikro", remote_tunnel_ip)
+            print(f"\n{C_GREEN}{C_BOLD}✅ Tunnel '{t_name}' is initialized & ONLINE!{C_END}")
         else: print(f"\n{C_RED}❌ Netplan Apply Failed!{C_END}")
     input(f"\nPress Enter to return to main menu...")
 
@@ -107,6 +122,14 @@ def manage_6to4_gre6():
     remote_v4 = input(f"{C_YELLOW}🔹 2. Remote MikroTik Public IPv4: {C_END}").strip()
     tunnel_cidr = input(f"{C_YELLOW}🔹 3. Tunnel Internal IPv4 (e.g., 10.20.20.1/30): {C_END}").strip()
     
+    try:
+        base_ip = tunnel_cidr.split('/')[0]
+        ip_parts = base_ip.split('.')
+        last_octet = int(ip_parts[3])
+        remote_tunnel_ip = f"{ip_parts[0]}.{ip_parts[1]}.{ip_parts[2]}.{last_octet + 1 if last_octet % 2 != 0 else last_octet - 1}"
+    except:
+        remote_tunnel_ip = ""
+
     local_v6 = ipv4_to_6to4(local_v4)
     remote_v6 = ipv4_to_6to4(remote_v4)
     
@@ -142,10 +165,10 @@ network:
         
         print(f"\n{C_YELLOW}⏳ Applying Hybrid Netplan Architecture...{C_END}")
         if subprocess.run(["netplan", "apply"]).returncode == 0:
-            time.sleep(1.5)
-            force_up_interface("ip6to4")
-            force_up_interface("gre6-to-mikro")
-            print(f"\n{C_GREEN}{C_BOLD}✅ Hybrid Tunnel '{t_name}' is now permanently UP & RUNNING!{C_END}")
+            time.sleep(1)
+            force_up_interface("ip6to4", "")
+            force_up_interface("gre6-to-mikro", remote_tunnel_ip)
+            print(f"\n{C_GREEN}{C_BOLD}✅ Hybrid Tunnel '{t_name}' is initialized & ONLINE!{C_END}")
         else: print(f"\n{C_RED}❌ Netplan Apply Failed!{C_END}")
     input(f"\nPress Enter to return to main menu...")
 
@@ -157,7 +180,6 @@ def status_and_diagnostic_hub():
     active_tunnels = {}
     index = 1
     
-    # اسکن تونل متد اول
     meta_reg = get_tunnel_metadata(YAML_REGULAR_PATH)
     print(f"{C_BOLD}[Method 1] Regular IPv4 GRE:{C_END}")
     if meta_reg:
@@ -171,7 +193,6 @@ def status_and_diagnostic_hub():
         
     print("-" * 70)
     
-    # اسکن تونل متد دوم
     meta_6to4 = get_tunnel_metadata(YAML_6TO4_PATH)
     print(f"{C_BOLD}[Method 2] Hybrid 6to4 > GRE6:{C_END}")
     if meta_6to4:
@@ -194,8 +215,6 @@ def status_and_diagnostic_hub():
     
     if ping_choice in active_tunnels:
         selected = active_tunnels[ping_choice]
-        
-        # حدس زدن اتوماتیک آی‌پی ریموت جهت راحتی کار یوتیوبر
         try:
             parts = selected['ip'].split('.')
             last_octet = int(parts[3])
@@ -212,7 +231,6 @@ def status_and_diagnostic_hub():
     
     input(f"\nPress Enter to return to main menu...")
 
-# چرخه اصلی منوی گرافیکی هاب
 while True:
     clear_screen()
     print(f"{C_CYAN}{C_BOLD}╔" + "═"*58 + "╗")
