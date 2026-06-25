@@ -253,7 +253,6 @@ def wizard_build_tunnel(path, tunnel_type, default_data=None):
             iface = "gre-to-mikro"
         else:
  yaml_content = f"""# NAME: {t_name}
-
 network:
   version: 2
   tunnels:
