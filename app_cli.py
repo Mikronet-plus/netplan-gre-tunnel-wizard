@@ -52,16 +52,16 @@ def slow_print(text, speed=0.03, center=False):
 
 def play_animated_loading_bar(text, color, duration=0.06, bar_width=40):
     width = get_terminal_width()
-    bar_pad = max(0, (width - bar_width - 12) // 2 + 3)
+    # محاسبه دقیق پدینگ برای وسط‌چین کردن کامل کادر (طول کادر + فضاهای اضافه حدوداً 7 کاراکتر است)
+    bar_pad = max(0, (width - (bar_width + 7)) // 2)
     
-    # چاپ متن عنوان لودینگ در خط اول
     slow_print(text, 0.02, center=True)
     time.sleep(0.4)
     
-    # انتقال نوار پیشرفت و درصد به خط بعدی برای جلوگیری از تداخل متن
-    print() 
+    print() # رفتن به خط بعد (زیر متن عنوان)
     for i in range(1, bar_width + 1):
         percent = int((i / bar_width) * 100)
+        # چاپ کادر انیمیشن دقیقاً در وسط خط پایینی
         sys.stdout.write("\r" + " " * bar_pad + f"{C_CYAN}[{color}" + "█"*i + " "*(bar_width-i) + f"{C_CYAN}] {C_YELLOW}{percent}%")
         sys.stdout.flush()
         time.sleep(duration)
