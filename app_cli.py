@@ -252,7 +252,7 @@ def wizard_build_tunnel(path, tunnel_type, default_data=None):
             yaml_content = f"# NAME: {t_name}\nnetwork:\n  version: 2\n  tunnels:\n    gre-to-mikro:\n      mode: gre\n      local: {local}\n      remote: {remote}\n      addresses:\n        - {tunnel_cidr}\n"
             iface = "gre-to-mikro"
         else:
- yaml_content = f"""# NAME: {t_name}
+            yaml_content = f"""# NAME: {t_name}
 network:
   version: 2
   tunnels:
@@ -270,6 +270,7 @@ network:
         - {tunnel_cidr}
 """
             iface = "gre6-to-mikro"
+
             
         with open(path, "w", encoding="utf-8") as f: f.write(yaml_content)
         
