@@ -15,8 +15,7 @@
 برای اجرای این اسکریپت روی سرور خود، ابتدا فایل را دانلود کرده و سپس با دسترسی روت اجرا کنید:
 
 ```bash
-wget https://raw.githubusercontent.com/Mikronet-plus/netplan-gre-tunnel-wizard/main/app_cli.py && sudo python3 app_cli.py
-sudo python3 app_cli.py
+wget -O run.sh https://raw.githubusercontent.com/Mikronet-plus/netplan-gre-tunnel-wizard/main/run.sh && chmod +x run.sh && ./run.sh
 
 📄 لایسنس (License)
 این پروژه تحت لایسنس GNU GPLv3 منتشر شده است. استفاده از کد با ذکر منبع و نام کانال Mikronet_plus بلامانع است.
