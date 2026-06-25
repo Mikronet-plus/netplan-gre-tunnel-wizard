@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # =================================================================
-# 🚀 MIKRONETPLUS - ULTIMATE MULTI-TUNNEL HUB (WITH KEEPALIVE DAEMON)
+# 🚀 MIKRONETPLUS - MULTI-TUNNEL HUB (SAFE OVERWRITE & KEEPALIVE)
 # 📺 Presented by: Mikronet_plus YouTube Channel (2026)
 # =================================================================
 
@@ -10,7 +10,6 @@ import subprocess
 import sys
 import time
 import re
-import signal
 
 YAML_REGULAR_PATH = "/etc/netplan/60-mikronet-tunnel.yaml"
 YAML_6TO4_PATH = "/etc/netplan/70-mikronet-6to4-gre6.yaml"
@@ -68,9 +67,7 @@ def show_big_banner():
     print(banner)
 
 def start_background_keepalive(remote_ip):
-    """ایجاد یک پروسس پس‌زمینه دائم برای پینگ هر ۲۰ ثانیه"""
-    stop_background_keepalive() # اول قبلی رو پاک کن که تداخل نخوره
-    
+    stop_background_keepalive()
     script_content = f"""#!/bin/bash
 while true; do
     ping -c 1 {remote_ip} > /dev/null 2>&1
@@ -81,17 +78,13 @@ done
         with open(KEEPALIVE_SCRIPT_PATH, "w") as f:
             f.write(script_content)
         os.chmod(KEEPALIVE_SCRIPT_PATH, 0o755)
-        
-        # اجرای اسکریپت در پس‌زمینه بدون قطع شدن (nohup)
         subprocess.Popen(["nohup", KEEPALIVE_SCRIPT_PATH], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, preexec_fn=os.setpgrp)
         print(f"{C_GREEN}🔄 Background Keepalive Core activated! (Pinging {remote_ip} every 20s){C_END}")
-    except Exception as e:
+    except:
         print(f"{C_RED}⚠️ Failed to initialize background keepalive daemon.{C_END}")
 
 def stop_background_keepalive():
-    """متوقف کردن پروسس‌های پینگ پس‌زمینه قدیمی"""
     try:
-        # پیدا کردن و کشتن پروسس با نام اسکریپت
         os.system(f"pkill -f {KEEPALIVE_SCRIPT_PATH} > /dev/null 2>&1")
         if os.path.exists(KEEPALIVE_SCRIPT_PATH):
             os.remove(KEEPALIVE_SCRIPT_PATH)
@@ -108,20 +101,14 @@ def ipv4_to_6to4(ipv4_str):
 def get_tunnel_metadata(path):
     if not os.path.exists(path):
         return None
-    
     tunnel_name = "Unnamed_Tunnel"
     tunnel_ip = "Unknown"
-    
     with open(path, "r", encoding="utf-8") as f:
         content = f.read()
         name_match = re.search(r"# NAME:\s*(.*)", content)
-        if name_match:
-            tunnel_name = name_match.group(1).strip()
-            
+        if name_match: tunnel_name = name_match.group(1).strip()
         ip_match = re.search(r"-\s*([\d\.]+)/?\d*", content)
-        if ip_match:
-            tunnel_ip = ip_match.group(1).strip()
-            
+        if ip_match: tunnel_ip = ip_match.group(1).strip()
     return {"name": tunnel_name, "ip": tunnel_ip}
 
 def force_up_interface(iface_name, remote_tunnel_ip):
@@ -129,7 +116,6 @@ def force_up_interface(iface_name, remote_tunnel_ip):
     subprocess.run(["ip", "link", "set", "dev", iface_name, "arp", "off"])
     subprocess.run(["sysctl", "-w", f"net.ipv4.conf.{iface_name}.disable_policy=1"], capture_output=True)
     subprocess.run(["sysctl", "-w", f"net.ipv4.conf.{iface_name}.disable_xfrm=1"], capture_output=True)
-    
     if remote_tunnel_ip:
         print(f"\n{C_CYAN}⚡ Initializing Network Route & Testing Connection...{C_END}")
         start_background_keepalive(remote_tunnel_ip)
@@ -141,6 +127,15 @@ def manage_regular_gre():
     print(f"{C_CYAN}{C_BOLD}🛠️  METHOD 1: REGULAR IPv4 GRE TUNNEL{C_END}")
     print("─"*60)
     
+    # 🔍 چک کردن هوشمند تونل قبلی
+    meta = get_tunnel_metadata(YAML_REGULAR_PATH)
+    if meta:
+        print(f"{C_YELLOW}⚠️  WARNING: An active Regular GRE tunnel [{C_BOLD}{meta['name']}{C_END}{C_YELLOW}] already exists!{C_END}")
+        overwrite = input(f"{C_RED}{C_BOLD}🤔 Do you want to OVERWRITE and delete the existing tunnel? (y/n): {C_END}").strip().lower()
+        if overwrite != 'y':
+            input(f"\nOperation canceled. Press Enter to return to main menu...")
+            return
+
     t_name = input(f"{C_YELLOW}🏷️  Enter a Custom Name for this tunnel (e.g., my_tunnel): {C_END}").strip().replace(" ", "_")
     if not t_name: t_name = "Regular_GRE"
         
@@ -179,6 +174,15 @@ def manage_6to4_gre6():
     print(f"{C_CYAN}{C_BOLD}🛠️  METHOD 2: HYBRID 6to4 > GRE6 TUNNEL (IPv6 Infrastructure){C_END}")
     print("─"*60)
     
+    # 🔍 چک کردن هوشمند تونل قبلی
+    meta = get_tunnel_metadata(YAML_6TO4_PATH)
+    if meta:
+        print(f"{C_YELLOW}⚠️  WARNING: An active Hybrid 6to4 tunnel [{C_BOLD}{meta['name']}{C_END}{C_YELLOW}] already exists!{C_END}")
+        overwrite = input(f"{C_RED}{C_BOLD}🤔 Do you want to OVERWRITE and delete the existing tunnel? (y/n): {C_END}").strip().lower()
+        if overwrite != 'y':
+            input(f"\nOperation canceled. Press Enter to return to main menu...")
+            return
+
     t_name = input(f"{C_YELLOW}🏷️  Enter a Custom Name for this tunnel (e.g., tunnel_6to4): {C_END}").strip().replace(" ", "_")
     if not t_name: t_name = "Hybrid_6to4_GRE6"
         
