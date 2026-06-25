@@ -251,6 +251,7 @@ def wizard_build_tunnel(path, tunnel_type, default_data=None):
         if tunnel_type == "Regular":
             yaml_content = f"# NAME: {t_name}\nnetwork:\n  version: 2\n  tunnels:\n    gre-to-mikro:\n      mode: gre\n      local: {local}\n      remote: {remote}\n      addresses:\n        - {tunnel_cidr}\n"
             iface = "gre-to-mikro"
+
         else:
             yaml_content = f"""# NAME: {t_name}
 network:
