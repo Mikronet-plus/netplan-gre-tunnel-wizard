@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # =================================================================
-# 🚀 MIKRONETPLUS - ULTIMATE MULTI-TUNNEL HUB (ADVANCED EDIT MATRIX)
+# 🚀 MIKRONETPLUS - ULTIMATE MULTI-TUNNEL HUB (CINEMATIC EDITION)
 # 📺 Presented by: Mikronet_plus YouTube Channel (2026)
 # 🌐 GitHub Repository: https://github.com/Mikronet-plus/netplan-gre-tunnel-wizard
 # =================================================================
@@ -11,6 +11,7 @@ import subprocess
 import sys
 import time
 import re
+import shutil
 
 # Netplan and Keepalive Config Paths
 YAML_REGULAR_PATH = "/etc/netplan/60-mikronet-tunnel.yaml"
@@ -32,7 +33,22 @@ if os.getuid() != 0:
 def clear_screen():
     os.system('clear')
 
-def slow_print(text, speed=0.03):
+def get_terminal_width():
+    """محاسبه عرض ترمینال برای وسط‌چین کردن دقیق متون"""
+    try:
+        return shutil.get_terminal_size().columns
+    except:
+        return 80
+
+def slow_print(text, speed=0.03, center=False):
+    """چاپ کاراکتر به کاراکتر با قابلیت هوشمند وسط‌چین کردن متن"""
+    if center:
+        width = get_terminal_width()
+        # حذف کدهای رنگی برای محاسبه دقیق طول واقعی متن
+        plain_text = re.sub(r'\033\[[0-9;]*m', '', text)
+        padding = max(0, (width - len(plain_text)) // 2)
+        sys.stdout.write(" " * padding)
+        
     for char in text:
         sys.stdout.write(char)
         sys.stdout.flush()
@@ -41,20 +57,61 @@ def slow_print(text, speed=0.03):
 
 def play_animated_intro():
     clear_screen()
-    print(f"{C_CYAN}{C_BOLD}╔" + "═"*58 + "╗")
-    print("║  ⚡ INITIALIZING MIKRONETPLUS CORE SYSTEM...             ║")
-    print("╚" + "═"*58 + f"╝{C_END}\n")
+    width = get_terminal_width()
+    
+    # طراحی باکس ماتریکسی وسط‌چین
+    box_title = "⚡ INITIALIZING MIKRONETPLUS CORE SYSTEM... ⚡"
+    padding = max(0, (width - len(box_title)) // 2)
+    
+    print("\n" * 2)
+    print(" " * padding + f"{C_CYAN}{C_BOLD}╔" + "═"*(len(box_title)+2) + "╗")
+    print(" " * padding + f"║ {box_title} ║")
+    print(" " * padding + f"╚" + "═"*(len(box_title)+2) + f"╝{C_END}\n")
+    time.sleep(0.4)
+    
+    # خط جداکننده وسط چین
+    sep = "─" * 68
+    sep_pad = max(0, (width - 68) // 2)
+    
+    slow_print(f"{C_GREEN}{C_BOLD}📢 OFFICIAL PROJECT LINKS & SOCIAL MEDIA:{C_END}", 0.02, center=True)
+    print(" " * sep_pad + f"{C_CYAN}{sep}{C_END}")
+    
+    slow_print(f"🐙 GitHub  : {C_GREEN}{C_BOLD}https://github.com/Mikronet-plus/netplan-gre-tunnel-wizard{C_END}", 0.02, center=True)
+    slow_print(f"📺 YouTube : {C_YELLOW}{C_BOLD}https://www.youtube.com/@Mikronet_plus{C_END}", 0.02, center=True)
+    slow_print(f"🚀 Telegram: {C_YELLOW}{C_BOLD}https://t.me/Mikronet_plus{C_END}", 0.02, center=True)
+    
+    print(" " * sep_pad + f"{C_CYAN}{sep}{C_END}")
+    
+    slow_print(f"\n{C_GREEN}⌛ Loading Core Matrix Components, Please Wait...{C_END}", 0.01, center=True)
+    time.sleep(1.5)
+
+def play_cinematic_outro():
+    """افکت خروج فوق‌العاده اسلو موشن و سایبرپانکی"""
+    clear_screen()
+    width = get_terminal_width()
+    
+    print("\n" * 3)
+    slow_print(f"{C_RED}{C_BOLD}🛑 DISCONNECTING FROM MIKRONETPLUS HUB CORE...{C_END}", 0.04, center=True)
+    time.sleep(0.4)
+    
+    # شبیه‌سازی لودینگ خروج ماتریکسی
+    bar_width = 40
+    bar_pad = max(0, (width - bar_width - 10) // 2)
+    for i in range(1, bar_width + 1):
+        percent = int((i / bar_width) * 100)
+        sys.stdout.write("\r" + " " * bar_pad + f"{C_CYAN}[{C_GREEN}" + "█"*i + " "*(bar_width-i) + f"{C_CYAN}] {C_YELLOW}{percent}%")
+        sys.stdout.flush()
+        time.sleep(0.02)
+    print("\n")
+    
     time.sleep(0.3)
+    slow_print(f"{C_GREEN}{C_BOLD}✨ Thank you for using MikroNetPlus CLI Manager! ✨{C_END}", 0.03, center=True)
+    slow_print(f"{C_CYAN}📺 Remember to Subscribe & Like our videos on YouTube.{C_END}", 0.03, center=True)
+    slow_print(f"{C_YELLOW}🚀 Stay secure, Stay connected.{C_END}", 0.04, center=True)
     
-    slow_print(f"{C_GREEN}{C_BOLD}📢 OFFICIAL PROJECT LINKS & SOCIAL MEDIA:{C_END}", 0.03)
-    print(f"{C_CYAN}─{C_END}"*68)
-    slow_print(f"🐙 GitHub  : {C_GREEN}{C_BOLD}https://github.com/Mikronet-plus/netplan-gre-tunnel-wizard{C_END}", 0.03)
-    slow_print(f"📺 YouTube : {C_YELLOW}{C_BOLD}https://www.youtube.com/@Mikronet_plus{C_END}", 0.03)
-    slow_print(f"🚀 Telegram: {C_YELLOW}{C_BOLD}https://t.me/Mikronet_plus{C_END}", 0.03)
-    print(f"{C_CYAN}─{C_END}"*68)
-    
-    slow_print(f"\n{C_GREEN}⌛ Loading Core Components, Please Wait...{C_END}", 0.02)
-    time.sleep(1.2)
+    print("\n" * 2)
+    time.sleep(0.8)
+    clear_screen()
 
 def show_big_banner():
     banner = f"""
@@ -102,14 +159,11 @@ def ipv4_to_6to4(ipv4_str):
         return None
 
 def parse_yaml_fields(path, tunnel_type):
-    """پارسر هوشمند تفکیک شده برای متد Regular و Hybrid 6to4"""
     data = {"name": "", "local": "", "remote": "", "tunnel_cidr": ""}
     if not os.path.exists(path):
         return None
     with open(path, "r", encoding="utf-8") as f:
         content = f.read()
-        
-        # استخراج نام
         name_match = re.search(r"# NAME:\s*(.*)", content)
         data["name"] = name_match.group(1).strip() if name_match else f"Unnamed_{tunnel_type}"
         
@@ -117,23 +171,14 @@ def parse_yaml_fields(path, tunnel_type):
             local_match = re.search(r"local:\s*([\d\.]+)", content)
             remote_match = re.search(r"remote:\s*([\d\.]+)", content)
             cidr_match = re.search(r"-\s*([\d\.]+/\d+)", content)
-            
             if local_match: data["local"] = local_match.group(1).strip()
             if remote_match: data["remote"] = remote_match.group(1).strip()
             if cidr_match: data["tunnel_cidr"] = cidr_match.group(1).strip()
         else:
-            # متد Hybrid 6to4 (استخراج آی‌پی IPv4 اصلی لوکال از بخش sit)
             sit_block = re.search(r"ip6to4:\s*mode:\s*sit\s*local:\s*([\d\.]+)", content)
-            if sit_block:
-                data["local"] = sit_block.group(1).strip()
-            
-            # پیدا کردن ریموت آی‌پی مایکروتیک (از روی فرمت IPv6 تغییر یافته ریموت یا به صورت مستقیم)
-            # برای سادگی، آدرس IPv4 ریموت مایکروتیک را از کاربر مجدد تایید میگیریم یا سورس را بازسازی میکنیم
-            # اما برای ادیت تمیز، بخشAddresses انتهای gre6-to-mikro را برمیداریم
+            if sit_block: data["local"] = sit_block.group(1).strip()
             cidr_matches = re.findall(r"-\s*([\d\.]+/\d+)", content)
-            if cidr_matches:
-                data["tunnel_cidr"] = cidr_matches[-1].strip()
-                
+            if cidr_matches: data["tunnel_cidr"] = cidr_matches[-1].strip()
     return data
 
 def get_input_with_default(prompt, default_val):
@@ -163,9 +208,6 @@ def extract_remote_ping_ip(tunnel_cidr):
     except:
         return ""
 
-# ==========================================
-# [1] CREATE TUNNEL SYSTEM
-# ==========================================
 def menu_create_tunnel():
     clear_screen()
     print(f"{C_CYAN}{C_BOLD}🛠️  CREATE NEW MULTI-TUNNEL ARCHITECTURE{C_END}")
@@ -176,10 +218,8 @@ def menu_create_tunnel():
     print("─"*60)
     choice = input(f"{C_BOLD}👉 Select Tunnel Type: {C_END}").strip()
     
-    if choice == '1':
-        wizard_build_tunnel(YAML_REGULAR_PATH, "Regular")
-    elif choice == '2':
-        wizard_build_tunnel(YAML_6TO4_PATH, "Hybrid")
+    if choice == '1': wizard_build_tunnel(YAML_REGULAR_PATH, "Regular")
+    elif choice == '2': wizard_build_tunnel(YAML_6TO4_PATH, "Hybrid")
 
 def wizard_build_tunnel(path, tunnel_type, default_data=None):
     clear_screen()
@@ -195,7 +235,6 @@ def wizard_build_tunnel(path, tunnel_type, default_data=None):
     tunnel_cidr = get_input_with_default(f"{C_YELLOW}🔹 3. Tunnel Internal IP (e.g., 10.10.10.1/30){C_END}", d['tunnel_cidr'])
     
     remote_tunnel_ip = extract_remote_ping_ip(tunnel_cidr)
-    
     local_v6 = ipv4_to_6to4(local)
     remote_v6 = ipv4_to_6to4(remote)
     
@@ -243,19 +282,14 @@ network:
         else: print(f"\n{C_RED}❌ Error! Netplan Apply Failed.{C_END}")
     input(f"\nPress Enter to return...")
 
-# ==========================================
-# [2] EDIT TUNNEL SYSTEM (INTELLIGENT MATRIX)
-# ==========================================
 def menu_edit_tunnel():
     clear_screen()
     print(f"{C_CYAN}{C_BOLD}📝 EDIT ACTIVE TUNNEL CORE INTERFACES{C_END}")
     print("═"*70)
     
     tunnels_pool = []
-    
     reg_data = parse_yaml_fields(YAML_REGULAR_PATH, "Regular")
     if reg_data: tunnels_pool.append({"path": YAML_REGULAR_PATH, "type": "Regular", "data": reg_data})
-        
     v6_data = parse_yaml_fields(YAML_6TO4_PATH, "Hybrid")
     if v6_data: tunnels_pool.append({"path": YAML_6TO4_PATH, "type": "Hybrid", "data": v6_data})
     
@@ -268,12 +302,10 @@ def menu_edit_tunnel():
     print(f"{C_BOLD}🎯 System Detected the following active tunnels:{C_END}\n")
     for idx, item in enumerate(tunnels_pool, 1):
         print(f"  {C_GREEN}[{idx}]{C_END} Type: {C_CYAN}{item['type']}{C_END} | Name: {C_BOLD}{item['data']['name']}{C_END} | IP Pool: {item['data']['tunnel_cidr']}")
-        
     print(f"  {C_RED}[B]{C_END} Cancel and return to menu")
     print("═"*70)
     
     choice = input(f"{C_BOLD}👉 Which tunnel do you want to edit? (1-{len(tunnels_pool)}): {C_END}").strip()
-    
     if choice.lower() == 'b' or not choice: return
     
     try:
@@ -281,14 +313,9 @@ def menu_edit_tunnel():
         if 0 <= selected_idx < len(tunnels_pool):
             target = tunnels_pool[selected_idx]
             wizard_build_tunnel(target['path'], target['type'], target['data'])
-        else:
-            print(f"{C_RED}❌ Invalid selection!{C_END}"); time.sleep(1)
-    except ValueError:
-        print(f"{C_RED}❌ Please enter a valid number!{C_END}"); time.sleep(1)
+        else: print(f"{C_RED}❌ Invalid selection!{C_END}"); time.sleep(1)
+    except ValueError: print(f"{C_RED}❌ Please enter a valid number!{C_END}"); time.sleep(1)
 
-# ==========================================
-# [3] DELETE TUNNEL SYSTEM
-# ==========================================
 def menu_delete_tunnel():
     clear_screen()
     print(f"{C_RED}{C_BOLD}❌ REMOVE TUNNEL INTERFACES FROM NETPLAN{C_END}")
@@ -312,14 +339,9 @@ def menu_delete_tunnel():
         print(f"\n{C_YELLOW}⏳ Flashing Netplan Core Infrastructure...{C_END}")
         subprocess.run(["netplan", "apply"])
         print(f"{C_GREEN}✅ Systems flushed successfully!{C_END}")
-    else:
-        print(f"{C_YELLOW}ℹ️  No tunnels found to clear!{C_END}")
-        
+    else: print(f"{C_YELLOW}ℹ️  No tunnels found to clear!{C_END}")
     input(f"\nPress Enter to return to main menu...")
 
-# ==========================================
-# [4] STATUS & DIAGNOSTICS HUB
-# ==========================================
 def status_and_diagnostic_hub():
     clear_screen()
     print(f"{C_CYAN}{C_BOLD}🔍  MIKRONETPLUS - INTERFACE STATUS & DIAGNOSTIC HUB{C_END}")
@@ -336,8 +358,7 @@ def status_and_diagnostic_hub():
         print(f"  [{index}] Interface: {C_CYAN}gre-to-mikro{C_END} | Name: {C_BOLD}{meta_reg['name']}{C_END} | IP: {meta_reg['tunnel_cidr']} | Status: {status}")
         active_tunnels[str(index)] = {"name": meta_reg['name'], "ip": meta_reg['tunnel_cidr']}
         index += 1
-    else:
-        print(f"  ❌ {C_RED}Not Configured{C_END}")
+    else: print(f"  ❌ {C_RED}Not Configured{C_END}")
         
     print("-" * 75)
     
@@ -349,17 +370,14 @@ def status_and_diagnostic_hub():
         print(f"  [{index}] Interface: {C_CYAN}gre6-to-mikro{C_END} | Name: {C_BOLD}{meta_6to4['name']}{C_END} | IP: {meta_6to4['tunnel_cidr']} | Status: {status}")
         active_tunnels[str(index)] = {"name": meta_6to4['name'], "ip": meta_6to4['tunnel_cidr']}
         index += 1
-    else:
-        print(f"  ❌ {C_RED}Not Configured{C_END}")
+    else: print(f"  ❌ {C_RED}Not Configured{C_END}")
         
     print("═"*75)
     
     print(f"{C_BOLD}[Keepalive Daemon Status]:{C_END}")
     is_running = os.system(f"pgrep -f {KEEPALIVE_SCRIPT_PATH} > /dev/null 2>&1") == 0
-    if is_running:
-        print(f"  🟢 Keepalive Service: {C_GREEN}ACTIVE (Pinging every 20s in background){C_END}")
-    else:
-        print(f"  🔴 Keepalive Service: {C_RED}INACTIVE{C_END}")
+    if is_running: print(f"  🟢 Keepalive Service: {C_GREEN}ACTIVE (Pinging every 20s in background){C_END}")
+    else: print(f"  🔴 Keepalive Service: {C_RED}INACTIVE{C_END}")
     print("═"*75)
 
     print(f"  {C_GREEN}[1-2]{C_END} Select Tunnel number to Ping diagnostics")
@@ -368,26 +386,21 @@ def status_and_diagnostic_hub():
     print("-" * 75)
     
     ping_choice = input(f"{C_BOLD}👉 Choice: {C_END}").strip()
-    
     if ping_choice.lower() == 'k':
         stop_background_keepalive()
-        print(f"\n{C_RED}🛑 Keepalive daemon stopped successfully!{C_END}")
-        time.sleep(1.5)
-        return
+        print(f"\n{C_RED}🛑 Keepalive daemon stopped successfully!{C_END}"); time.sleep(1.5); return
         
     if ping_choice in active_tunnels:
         selected = active_tunnels[ping_choice]
         remote_ip = extract_remote_ping_ip(selected['ip'])
-            
         print(f"\n🚀 Launching live diagnostics for [{C_BOLD}{selected['name']}{C_END}]...")
         target_ip = input(f"{C_YELLOW}🎯 Target Remote Tunnel IP [Default auto-detect: {remote_ip}]: {C_END}").strip()
         if not target_ip: target_ip = remote_ip
-            
         print(f"\n⏳ Sending 4 live packets to {target_ip}...\n")
         subprocess.run(["ping", "-c", "4", target_ip])
         input(f"\nPress Enter to return to main menu...")
 
-# Trigger Animated Intro
+# TRIGGER METRIC INTRO
 play_animated_intro()
 
 # Main CLI Loop
@@ -410,8 +423,5 @@ while True:
     elif choice == '3': menu_delete_tunnel()
     elif choice == '4': status_and_diagnostic_hub()
     elif choice == '5':
-        clear_screen()
-        print(f"\n{C_GREEN}{C_BOLD}👋 Thank you for using MikroNetPlus CLI Manager!{C_END}")
-        print(f"{C_CYAN}🐙 Project Source: https://github.com/Mikronet-plus/netplan-gre-tunnel-wizard{C_END}")
-        print(f"{C_CYAN}📺 Don't forget to subscribe to Mikronet_plus on YouTube.{C_END}\n")
+        play_cinematic_outro()
         break
