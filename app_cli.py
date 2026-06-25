@@ -52,7 +52,8 @@ def slow_print(text, speed=0.03, center=False):
 
 def play_animated_loading_bar(text, color, duration=0.06, bar_width=40):
     width = get_terminal_width()
-    bar_pad = max(0, (width - bar_width - 12) // 2)
+    # افزایش پدینگ سمت چپ برای متمایل کردن لودینگ به سمت راست
+    bar_pad = max(0, (width - bar_width - 12) // 2 + 6)
     
     slow_print(text, 0.02, center=True)
     time.sleep(0.4)
