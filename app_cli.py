@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # =================================================================
-# 🚀 MIKRONETPLUS - ULTIMATE MULTI-TUNNEL HUB (STABLE ENGLISH)
+# 🚀 MIKRONETPLUS - ULTIMATE MULTI-TUNNEL HUB (ANIMATED INTRO)
 # 📺 Presented by: Mikronet_plus YouTube Channel (2026)
 # =================================================================
 
@@ -28,6 +28,31 @@ if os.getuid() != 0:
 
 def clear_screen():
     os.system('clear')
+
+def slow_print(text, speed=0.03):
+    """افکت تایپ آهسته کاراکترها برای جذابیت تیزر اول اسکریپت"""
+    for char in text:
+        sys.stdout.write(char)
+        sys.stdout.flush()
+        time.sleep(speed)
+    print()
+
+def play_animated_intro():
+    """انیمیشن اختصاصی خوش‌آمدگویی و تبلیغ کانال‌ها"""
+    clear_screen()
+    print(f"{C_CYAN}{C_BOLD}╔" + "═"*58 + "╗{C_END}")
+    slow_print(f"{C_CYAN}{C_BOLD}║  ⚡ INITIALIZING MIKRONETPLUS CORE SYSTEM...             ║{C_END}", 0.02)
+    print(f"{C_CYAN}{C_BOLD}╚" + "═"*58 + "╝{C_END}\n")
+    time.sleep(0.3)
+    
+    slow_print(f"{C_GREEN}{C_BOLD}📢 FOLLOW US ON SOCIAL MEDIA FOR UPDATES:{C_END}", 0.03)
+    print(f"{C_CYAN}─{C_END}"*60)
+    slow_print(f"📺 YouTube : {C_YELLOW}{C_BOLD}https://www.youtube.com/@Mikronet_plus{C_END}", 0.04)
+    slow_print(f"🚀 Telegram: {C_YELLOW}{C_BOLD}https://t.me/Mikronet_plus{C_END}", 0.04)
+    print(f"{C_CYAN}─{C_END}"*60)
+    
+    slow_print(f"\n{C_GREEN}⌛ Loading Core Components, Please Wait...{C_END}", 0.02)
+    time.sleep(1.5)
 
 def ipv4_to_6to4(ipv4_str):
     try:
@@ -56,7 +81,6 @@ def get_tunnel_metadata(path):
     return {"name": tunnel_name, "ip": tunnel_ip}
 
 def force_up_interface(iface_name, remote_tunnel_ip):
-    """Wake up the routing table and lock interface state to UP"""
     subprocess.run(["ip", "link", "set", "dev", iface_name, "up"])
     subprocess.run(["ip", "link", "set", "dev", iface_name, "arp", "off"])
     subprocess.run(["sysctl", "-w", f"net.ipv4.conf.{iface_name}.disable_policy=1"], capture_output=True)
@@ -72,7 +96,7 @@ def manage_regular_gre():
     print(f"{C_CYAN}{C_BOLD}🛠️  METHOD 1: REGULAR IPv4 GRE TUNNEL{C_END}")
     print("─"*60)
     
-    t_name = input(f"{C_YELLOW}🏷️  Enter a Custom Name for this tunnel (e.g., Tunnel_Asghar): {C_END}").strip().replace(" ", "_")
+    t_name = input(f"{C_YELLOW}🏷️  Enter a Custom Name for this tunnel (e.g., my_tunnel): {C_END}").strip().replace(" ", "_")
     if not t_name: t_name = "Regular_GRE"
         
     local = input(f"{C_YELLOW}🔹 1. Local Linux Public IPv4: {C_END}").strip()
@@ -110,7 +134,7 @@ def manage_6to4_gre6():
     print(f"{C_CYAN}{C_BOLD}🛠️  METHOD 2: HYBRID 6to4 > GRE6 TUNNEL (IPv6 Infrastructure){C_END}")
     print("─"*60)
     
-    t_name = input(f"{C_YELLOW}🏷️  Enter a Custom Name for this tunnel (e.g., Tunnel_6to4): {C_END}").strip().replace(" ", "_")
+    t_name = input(f"{C_YELLOW}🏷️  Enter a Custom Name for this tunnel (e.g., tunnel_6to4): {C_END}").strip().replace(" ", "_")
     if not t_name: t_name = "Hybrid_6to4_GRE6"
         
     local_v4 = input(f"{C_YELLOW}🔹 1. Local Linux Public IPv4: {C_END}").strip()
@@ -225,6 +249,9 @@ def status_and_diagnostic_hub():
         subprocess.run(["ping", "-c", "4", target_ip])
     
     input(f"\nPress Enter to return to main menu...")
+
+# اجرای انیمیشن اول ورود قبل از بالا آمدن منوی اصلی
+play_animated_intro()
 
 # Main CLI Loop
 while True:
