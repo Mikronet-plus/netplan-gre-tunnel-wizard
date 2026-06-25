@@ -66,13 +66,21 @@ while True:
             if subprocess.run(["netplan", "apply"]).returncode == 0:
                 print(f"\n{C_GREEN}{C_BOLD}✅ Netplan applied successfully!{C_END}")
                 
-                # 🔥 ترفند طلایی: بیدار کردن فوری تونل با یک پینگ مخفی
-                print(f"{C_YELLOW}⏳ Waking up GRE interface...{C_END}")
-                tunnel_ip = tunnel_with_cidr.split('/')[0]
-                # فرستادن ۱ پینگ با تایم‌اوت ۱ ثانیه برای زنده کردن اینترفیس لینوکس
-                subprocess.run(["ping", "-c", "1", "-W", "1", tunnel_ip], capture_output=True)
+                # 🔥 ترفند طلایی جدید: حدس زدن آی‌پي سمت میکروتیک برای شلیک پینگ بیدارکننده
+                # اگر کاربر وارد کرده ۱۰.۱۰.۱۰.۱، اسکریپت به ۱۰.۱۰.۱۰.۲ پینگ می‌زند تا مسیر فعال شود
+                try:
+                    base_ip = tunnel_with_cidr.split('/')[0]
+                    ip_parts = base_ip.split('.')
+                    last_octet = int(ip_parts[3])
+                    # اگر آی‌پی سرور فرد بود (مثل .۱) به زوج (.۲) پینگ می‌زند و برعکس
+                    remote_tunnel_ip = f"{ip_parts[0]}.{ip_parts[1]}.{ip_parts[2]}.{last_octet + 1 if last_octet % 2 != 0 else last_octet - 1}"
+                    
+                    print(f"{C_YELLOW}⏳ Pinging remote peer ({remote_tunnel_ip}) to force wake GRE interface...{C_END}")
+                    subprocess.run(["ping", "-c", "1", "-W", "1", remote_tunnel_ip], capture_output=True)
+                except:
+                    pass # اگر فرمت آی‌پی عجیب بود خطا ندهد
                 
-                print(f"{C_GREEN}{C_BOLD}🚀 Success! Tunnel is now permanently UP & ONLINE.{C_END}")
+                print(f"{C_GREEN}{C_BOLD}🚀 Success! Tunnel configuration completed.{C_END}")
             else: 
                 print(f"\n{C_RED}❌ Error! Failed to apply Netplan configuration.{C_END}")
         else:
@@ -97,10 +105,9 @@ while True:
         
         if_check = subprocess.run(["ip", "link", "show", "gre-to-mikro"], capture_output=True, text=True)
         if if_check.returncode == 0:
-            # اگر اینترفیس ساخته شده باشد، یک پینگ سریع می‌زنیم تا مطمئن شویم وضعیت درست نشان داده می‌شود
-            subprocess.run(["ip", "route"], capture_output=True) # رفرش جدول مسیرها
+            # در لینوکس وضعیت لایه ۳ تونل معمولا UNKNOWN (یعنی آماده تبادل دیتای بدون استیت) یا UP است
             if "UP" in if_check.stdout or "UNKNOWN" in if_check.stdout: 
-                print(f"  🟢 Interface [gre-to-mikro]: {C_GREEN}{C_BOLD}UP & RUNNING{C_END}")
+                print(f"  🟢 Interface [gre-to-mikro]: {C_GREEN}{C_BOLD}UP & READY{C_END}")
             else:
                 print(f"  🟡 Interface [gre-to-mikro]: {C_YELLOW}DOWN / IDLE (Needs Traffic){C_END}")
         else:
