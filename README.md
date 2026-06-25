@@ -1,4 +1,4 @@
-# 🚀 MikroNetPlus: Linux to MikroTik GRE Tunnel CLI Wizard
+# 🚀 Mikronet_Plus: Linux to MikroTik GRE Tunnel CLI Wizard
 
 این ابزار تعاملی به زبان پایتون طراحی شده است تا متخصصین شبکه بتوانند بدون ریسک قطع شدن اینترنت سرور اوبونتو، تونل‌های GRE خود را به صورت آنی و از طریق ابزار مدرن **Netplan** پیکربندی کنند.
 
