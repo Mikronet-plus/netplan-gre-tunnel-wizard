@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # =================================================================
-# 🚀 MIKRONETPLUS - CUSTOM NAMED MULTI-TUNNEL MANAGER (MikroTik Style)
+# 🚀 MIKRONETPLUS - ULTIMATE MULTI-TUNNEL HUB (WAKE-UP ASSURED)
 # 📺 Presented by: Mikronet_plus YouTube Channel (2026)
 # =================================================================
 
@@ -56,20 +56,17 @@ def get_tunnel_metadata(path):
     return {"name": tunnel_name, "ip": tunnel_ip}
 
 def force_up_interface(iface_name, remote_tunnel_ip):
-    """اجبار هسته لینوکس به فعال‌سازی روتینگ و بیدار کردن اینترفیس بدون دخالت کاربر"""
+    """بیدار کردن اینترفیس و اجرای اولین پینگ زنده برای پایداری روتینگ لینوکس"""
     subprocess.run(["ip", "link", "set", "dev", iface_name, "up"])
     subprocess.run(["ip", "link", "set", "dev", iface_name, "arp", "off"])
-    
-    # کدهای بهینه‌سازی هسته
     subprocess.run(["sysctl", "-w", f"net.ipv4.conf.{iface_name}.disable_policy=1"], capture_output=True)
     subprocess.run(["sysctl", "-w", f"net.ipv4.conf.{iface_name}.disable_xfrm=1"], capture_output=True)
     
-    # شلیک ترافیک پیش‌زمینه فوری برای باز شدن جدول روتینگ لینوکس
     if remote_tunnel_ip:
-        # شبیه‌سازی درخواست مسیر
-        subprocess.run(["ip", "route", "get", remote_tunnel_ip], capture_output=True)
-        # پینگ بسیار سریع مخفی (فقط ۱ بسته با تایم‌اوت نیم‌ثانیه) جهت فیکس قطعی
-        subprocess.run(["ping", "-c", "1", "-W", "1", remote_tunnel_ip], capture_output=True)
+        print(f"\n{C_CYAN}⚡ Initializing Network Route & Testing Connection...{C_END}")
+        print(f"{C_YELLOW}⏳ Triggering tunnel with 4 live verification packets to {remote_tunnel_ip}:{C_END}\n")
+        # اجرای پینگ مستقیم در ترمینال اصلی برای شکستن قفل لینوکس
+        subprocess.run(["ping", "-c", "4", remote_tunnel_ip])
 
 def manage_regular_gre():
     clear_screen()
@@ -83,7 +80,6 @@ def manage_regular_gre():
     remote = input(f"{C_YELLOW}🔹 2. Remote MikroTik Public IPv4: {C_END}").strip()
     tunnel_cidr = input(f"{C_YELLOW}🔹 3. Tunnel Internal IP (e.g., 10.10.10.1/30): {C_END}").strip()
     
-    # محاسبه اتوماتیک آی‌پی مقابل برای بیدار کردن هسته
     try:
         base_ip = tunnel_cidr.split('/')[0]
         ip_parts = base_ip.split('.')
@@ -106,7 +102,7 @@ def manage_regular_gre():
         if subprocess.run(["netplan", "apply"]).returncode == 0:
             time.sleep(1)
             force_up_interface("gre-to-mikro", remote_tunnel_ip)
-            print(f"\n{C_GREEN}{C_BOLD}✅ Tunnel '{t_name}' is initialized & ONLINE!{C_END}")
+            print(f"\n{C_GREEN}{C_BOLD}✅ Tunnel '{t_name}' is active and synced with system routing table!{C_END}")
         else: print(f"\n{C_RED}❌ Netplan Apply Failed!{C_END}")
     input(f"\nPress Enter to return to main menu...")
 
@@ -166,9 +162,9 @@ network:
         print(f"\n{C_YELLOW}⏳ Applying Hybrid Netplan Architecture...{C_END}")
         if subprocess.run(["netplan", "apply"]).returncode == 0:
             time.sleep(1)
-            force_up_interface("ip6to4", "")
+            subprocess.run(["ip", "link", "set", "dev", "ip6to4", "up"])
             force_up_interface("gre6-to-mikro", remote_tunnel_ip)
-            print(f"\n{C_GREEN}{C_BOLD}✅ Hybrid Tunnel '{t_name}' is initialized & ONLINE!{C_END}")
+            print(f"\n{C_GREEN}{C_BOLD}✅ Hybrid Tunnel '{t_name}' is active and synced with system routing table!{C_END}")
         else: print(f"\n{C_RED}❌ Netplan Apply Failed!{C_END}")
     input(f"\nPress Enter to return to main menu...")
 
