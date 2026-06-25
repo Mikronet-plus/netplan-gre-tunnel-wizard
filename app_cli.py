@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # =================================================================
-# 🚀 MIKRONETPLUS - ULTIMATE MULTI-TUNNEL HUB (ANIMATED INTRO)
+# 🚀 MIKRONETPLUS - ULTIMATE MULTI-TUNNEL HUB (ASCII BIG BANNER)
 # 📺 Presented by: Mikronet_plus YouTube Channel (2026)
 # =================================================================
 
@@ -30,7 +30,7 @@ def clear_screen():
     os.system('clear')
 
 def slow_print(text, speed=0.03):
-    """افکت تایپ آهسته کاراکترها برای جذابیت تیزر اول اسکریپت"""
+    """Animated typewriter effect"""
     for char in text:
         sys.stdout.write(char)
         sys.stdout.flush()
@@ -38,11 +38,11 @@ def slow_print(text, speed=0.03):
     print()
 
 def play_animated_intro():
-    """انیمیشن اختصاصی خوش‌آمدگویی و تبلیغ کانال‌ها"""
+    """Clean and fixed animated introduction"""
     clear_screen()
-    print(f"{C_CYAN}{C_BOLD}╔" + "═"*58 + "╗{C_END}")
+    print(f"{C_CYAN}{C_BOLD}╔" + "═"*58 + f"╗{C_END}")
     slow_print(f"{C_CYAN}{C_BOLD}║  ⚡ INITIALIZING MIKRONETPLUS CORE SYSTEM...             ║{C_END}", 0.02)
-    print(f"{C_CYAN}{C_BOLD}╚" + "═"*58 + "╝{C_END}\n")
+    print(f"{C_CYAN}{C_BOLD}╚" + "═"*58 + f"╝{C_END}\n")
     time.sleep(0.3)
     
     slow_print(f"{C_GREEN}{C_BOLD}📢 FOLLOW US ON SOCIAL MEDIA FOR UPDATES:{C_END}", 0.03)
@@ -52,7 +52,21 @@ def play_animated_intro():
     print(f"{C_CYAN}─{C_END}"*60)
     
     slow_print(f"\n{C_GREEN}⌛ Loading Core Components, Please Wait...{C_END}", 0.02)
-    time.sleep(1.5)
+    time.sleep(1.2)
+
+def show_big_banner():
+    """Displays a stylized large ASCII banner centered in the menu"""
+    banner = f"""
+{C_CYAN}{C_BOLD} __  __ _ _             _   _      _   _____  _             
+|  \/  (_) |           | \ | |    | | |  __ \| |            
+| \  / |_| | ___ __ ___|  \| | ___| |_| |__) | |_   _ ___   
+| |\/| | | |/ / \x27__/ _ \ . \x27 |/ _ \ __|  ___/| | | | / __|  
+| |  | | |   <| | |  __/ |\  |  __/ |_| |    | | |_| \__ \\  
+|_|  |_|_|_|\_\_|  \___|_| \_|\___|\__|_|    |_|\__,_|___/{C_END}
+{C_GREEN}{C_BOLD}              🌐  ULTIMATE MULTI-TUNNEL CORE  🌐{C_END}
+{C_YELLOW}        📺 Presentation of Mikronet_plus YouTube Channel{C_END}
+"""
+    print(banner)
 
 def ipv4_to_6to4(ipv4_str):
     try:
@@ -250,16 +264,13 @@ def status_and_diagnostic_hub():
     
     input(f"\nPress Enter to return to main menu...")
 
-# اجرای انیمیشن اول ورود قبل از بالا آمدن منوی اصلی
+# Trigger Intro Animation Once
 play_animated_intro()
 
 # Main CLI Loop
 while True:
     clear_screen()
-    print(f"{C_CYAN}{C_BOLD}╔" + "═"*58 + "╗")
-    print("║ 🚀  MIKRONETPLUS - ULTIMATE TUNNEL CORE MANAGER         ║")
-    print("║ 📺  Presented by: Mikronet_plus YouTube Channel         ║")
-    print("╚" + "═"*58 + "╝" + f"{C_END}")
+    show_big_banner()
     
     print(f"{C_BOLD}📱 SELECT TUNNEL METHOD:{C_END}")
     print(f"  {C_GREEN}[1]{C_END} 🛠️  Create / Edit Regular IPv4 GRE Tunnel")
