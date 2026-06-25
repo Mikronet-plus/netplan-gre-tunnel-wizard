@@ -11,7 +11,7 @@ import sys
 
 YAML_PATH = "/etc/netplan/60-mikronet-tunnel.yaml"
 
-# Terminal Colors (ANSI Escape Codes)
+# Terminal Colors
 C_GREEN = "\033[92m"
 C_YELLOW = "\033[93m"
 C_RED = "\033[91m"
@@ -28,7 +28,6 @@ def clear_screen():
 
 while True:
     clear_screen()
-    # Graphic Header
     print(f"{C_CYAN}{C_BOLD}╔" + "═"*58 + "╗")
     print("║ 🚀  MIKRONETPLUS - SMART GRE TUNNEL CLI MANAGER          ║")
     print("║ 📺  Presented by: Mikronet_plus YouTube Channel         ║")
@@ -49,23 +48,31 @@ while True:
         
         local = input(f"{C_YELLOW}🔹 1. Local Linux Public IP: {C_END}").strip()
         remote = input(f"{C_YELLOW}🔹 2. Remote MikroTik Public IP: {C_END}").strip()
-        tunnel = input(f"{C_YELLOW}🔹 3. Tunnel Internal IP (e.g., 10.10.10.1/30): {C_END}").strip()
+        tunnel_with_cidr = input(f"{C_YELLOW}🔹 3. Tunnel Internal IP (e.g., 10.10.10.1/30): {C_END}").strip()
         
         print(f"\n{C_BOLD}📊 Preview Configuration:{C_END}")
         print(f"  ▫️ Local IP  : {C_GREEN}{local}{C_END}")
         print(f"  ▫️ Remote IP : {C_GREEN}{remote}{C_END}")
-        print(f"  ▫️ Tunnel IP : {C_GREEN}{tunnel}{C_END}")
+        print(f"  ▫️ Tunnel IP : {C_GREEN}{tunnel_with_cidr}{C_END}")
         print("─"*40)
         
         confirm = input(f"{C_BOLD}🤔 Apply these changes? (y/n): {C_END}").strip().lower()
         if confirm == 'y':
-            yaml_content = f"network:\n  version: 2\n  tunnels:\n    gre-to-mikro:\n      mode: gre\n      local: {local}\n      remote: {remote}\n      addresses:\n        - {tunnel}\n"
+            yaml_content = f"network:\n  version: 2\n  tunnels:\n    gre-to-mikro:\n      mode: gre\n      local: {local}\n      remote: {remote}\n      addresses:\n        - {tunnel_with_cidr}\n"
             with open(YAML_PATH, "w") as f: 
                 f.write(yaml_content)
             
             print(f"\n{C_YELLOW}⏳ Applying Netplan configuration...{C_END}")
             if subprocess.run(["netplan", "apply"]).returncode == 0:
-                print(f"\n{C_GREEN}{C_BOLD}✅ Success! Tunnel has been active/modified.{C_END}")
+                print(f"\n{C_GREEN}{C_BOLD}✅ Netplan applied successfully!{C_END}")
+                
+                # 🔥 ترفند طلایی: بیدار کردن فوری تونل با یک پینگ مخفی
+                print(f"{C_YELLOW}⏳ Waking up GRE interface...{C_END}")
+                tunnel_ip = tunnel_with_cidr.split('/')[0]
+                # فرستادن ۱ پینگ با تایم‌اوت ۱ ثانیه برای زنده کردن اینترفیس لینوکس
+                subprocess.run(["ping", "-c", "1", "-W", "1", tunnel_ip], capture_output=True)
+                
+                print(f"{C_GREEN}{C_BOLD}🚀 Success! Tunnel is now permanently UP & ONLINE.{C_END}")
             else: 
                 print(f"\n{C_RED}❌ Error! Failed to apply Netplan configuration.{C_END}")
         else:
@@ -90,10 +97,12 @@ while True:
         
         if_check = subprocess.run(["ip", "link", "show", "gre-to-mikro"], capture_output=True, text=True)
         if if_check.returncode == 0:
-            if "UP" in if_check.stdout:
+            # اگر اینترفیس ساخته شده باشد، یک پینگ سریع می‌زنیم تا مطمئن شویم وضعیت درست نشان داده می‌شود
+            subprocess.run(["ip", "route"], capture_output=True) # رفرش جدول مسیرها
+            if "UP" in if_check.stdout or "UNKNOWN" in if_check.stdout: 
                 print(f"  🟢 Interface [gre-to-mikro]: {C_GREEN}{C_BOLD}UP & RUNNING{C_END}")
             else:
-                print(f"  🟡 Interface [gre-to-mikro]: {C_YELLOW}DOWN / IDLE{C_END}")
+                print(f"  🟡 Interface [gre-to-mikro]: {C_YELLOW}DOWN / IDLE (Needs Traffic){C_END}")
         else:
             print(f"  🔴 Interface [gre-to-mikro]: {C_RED}NOT FOUND (Apply Failed){C_END}")
             
