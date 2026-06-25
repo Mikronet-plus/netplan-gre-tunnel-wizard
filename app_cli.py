@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # =================================================================
-# 🚀 MIKRONETPLUS - ULTIMATE MULTI-TUNNEL HUB (ASCII BIG BANNER)
+# 🚀 MIKRONETPLUS - ULTIMATE MULTI-TUNNEL HUB (WITH KEEPALIVE DAEMON)
 # 📺 Presented by: Mikronet_plus YouTube Channel (2026)
 # =================================================================
 
@@ -10,9 +10,11 @@ import subprocess
 import sys
 import time
 import re
+import signal
 
 YAML_REGULAR_PATH = "/etc/netplan/60-mikronet-tunnel.yaml"
 YAML_6TO4_PATH = "/etc/netplan/70-mikronet-6to4-gre6.yaml"
+KEEPALIVE_SCRIPT_PATH = "/usr/local/bin/mikronet_keepalive.sh"
 
 # Terminal Colors
 C_GREEN = "\033[92m"
@@ -30,7 +32,6 @@ def clear_screen():
     os.system('clear')
 
 def slow_print(text, speed=0.03):
-    """Animated typewriter effect"""
     for char in text:
         sys.stdout.write(char)
         sys.stdout.flush()
@@ -38,11 +39,10 @@ def slow_print(text, speed=0.03):
     print()
 
 def play_animated_intro():
-    """Clean and fixed animated introduction"""
     clear_screen()
-    print(f"{C_CYAN}{C_BOLD}╔" + "═"*58 + f"╗{C_END}")
-    slow_print(f"{C_CYAN}{C_BOLD}║  ⚡ INITIALIZING MIKRONETPLUS CORE SYSTEM...             ║{C_END}", 0.02)
-    print(f"{C_CYAN}{C_BOLD}╚" + "═"*58 + f"╝{C_END}\n")
+    print(f"{C_CYAN}{C_BOLD}╔" + "═"*58 + "╗")
+    print("║  ⚡ INITIALIZING MIKRONETPLUS CORE SYSTEM...             ║")
+    print("╚" + "═"*58 + f"╝{C_END}\n")
     time.sleep(0.3)
     
     slow_print(f"{C_GREEN}{C_BOLD}📢 FOLLOW US ON SOCIAL MEDIA FOR UPDATES:{C_END}", 0.03)
@@ -55,18 +55,48 @@ def play_animated_intro():
     time.sleep(1.2)
 
 def show_big_banner():
-    """Displays a stylized large ASCII banner centered in the menu"""
     banner = f"""
-{C_CYAN}{C_BOLD} __  __ _ _             _   _      _   _____  _             
-|  \/  (_) |           | \ | |    | | |  __ \| |            
-| \  / |_| | ___ __ ___|  \| | ___| |_| |__) | |_   _ ___   
-| |\/| | | |/ / \x27__/ _ \ . \x27 |/ _ \ __|  ___/| | | | / __|  
-| |  | | |   <| | |  __/ |\  |  __/ |_| |    | | |_| \__ \\  
-|_|  |_|_|_|\_\_|  \___|_| \_|\___|\__|_|    |_|\__,_|___/{C_END}
-{C_GREEN}{C_BOLD}              🌐  ULTIMATE MULTI-TUNNEL CORE  🌐{C_END}
-{C_YELLOW}        📺 Presentation of Mikronet_plus YouTube Channel{C_END}
+{C_CYAN}{C_BOLD}    __  ___ _ __              _   __     __     ____   __            
+   /  |/  /(_) /__  _________  / | / /__  / /_   / __ \ / /_  ______ _ 
+  / /|_/ // / //_/ / ___/ __ \/  |/ / _ \/ __/  / /_/ // / / / / ___/ / 
+ / /  / // / ,<   / /  / /_/ / /|  /  __/ /_   / ____// / /_/ (__  )_/  
+/_/  /_//_/_/|_| /_/   \____/_/ |_/\___/\__/  /_/    /_/\__,_/____(_)   {C_END}
+
+{C_GREEN}{C_BOLD}                     🌐  ULTIMATE MULTI-TUNNEL HUB  🌐{C_END}
+{C_YELLOW}              Presented by Mikronet_plus YouTube Channel{C_END}
 """
     print(banner)
+
+def start_background_keepalive(remote_ip):
+    """ایجاد یک پروسس پس‌زمینه دائم برای پینگ هر ۲۰ ثانیه"""
+    stop_background_keepalive() # اول قبلی رو پاک کن که تداخل نخوره
+    
+    script_content = f"""#!/bin/bash
+while true; do
+    ping -c 1 {remote_ip} > /dev/null 2>&1
+    sleep 20
+done
+"""
+    try:
+        with open(KEEPALIVE_SCRIPT_PATH, "w") as f:
+            f.write(script_content)
+        os.chmod(KEEPALIVE_SCRIPT_PATH, 0o755)
+        
+        # اجرای اسکریپت در پس‌زمینه بدون قطع شدن (nohup)
+        subprocess.Popen(["nohup", KEEPALIVE_SCRIPT_PATH], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, preexec_fn=os.setpgrp)
+        print(f"{C_GREEN}🔄 Background Keepalive Core activated! (Pinging {remote_ip} every 20s){C_END}")
+    except Exception as e:
+        print(f"{C_RED}⚠️ Failed to initialize background keepalive daemon.{C_END}")
+
+def stop_background_keepalive():
+    """متوقف کردن پروسس‌های پینگ پس‌زمینه قدیمی"""
+    try:
+        # پیدا کردن و کشتن پروسس با نام اسکریپت
+        os.system(f"pkill -f {KEEPALIVE_SCRIPT_PATH} > /dev/null 2>&1")
+        if os.path.exists(KEEPALIVE_SCRIPT_PATH):
+            os.remove(KEEPALIVE_SCRIPT_PATH)
+    except:
+        pass
 
 def ipv4_to_6to4(ipv4_str):
     try:
@@ -102,7 +132,8 @@ def force_up_interface(iface_name, remote_tunnel_ip):
     
     if remote_tunnel_ip:
         print(f"\n{C_CYAN}⚡ Initializing Network Route & Testing Connection...{C_END}")
-        print(f"{C_YELLOW}⏳ Sending 4 live verification packets to {remote_tunnel_ip}:{C_END}\n")
+        start_background_keepalive(remote_tunnel_ip)
+        print(f"\n{C_YELLOW}⏳ Sending 4 live verification packets to {remote_tunnel_ip}:{C_END}\n")
         subprocess.run(["ping", "-c", "4", remote_tunnel_ip])
 
 def manage_regular_gre():
@@ -239,13 +270,27 @@ def status_and_diagnostic_hub():
         
     print("═"*75)
     
-    if not active_tunnels:
-        print(f"{C_YELLOW}⚠️ No active tunnels found to ping!{C_END}")
-        input(f"\nPress Enter to return to menu...")
-        return
+    print(f"{C_BOLD}[Keepalive Daemon Status]:{C_END}")
+    is_running = os.system(f"pgrep -f {KEEPALIVE_SCRIPT_PATH} > /dev/null 2>&1") == 0
+    if is_running:
+        print(f"  🟢 Keepalive Service: {C_GREEN}ACTIVE (Pinging every 20s in background){C_END}")
+    else:
+        print(f"  🔴 Keepalive Service: {C_RED}INACTIVE{C_END}")
+    print("═"*75)
 
-    ping_choice = input(f"{C_BOLD}⚡ Select a Tunnel number to Ping, or press Enter to skip: {C_END}").strip()
+    print(f"  {C_GREEN}[1-2]{C_END} Select Tunnel number to Ping diagnostics")
+    print(f"  {C_RED}[K]{C_END}   Stop Background Keepalive Service")
+    print(f"  {C_YELLOW}[Enter]{C_END} Return to Main Menu")
+    print("-" * 75)
     
+    ping_choice = input(f"{C_BOLD}👉 Choice: {C_END}").strip()
+    
+    if ping_choice.lower() == 'k':
+        stop_background_keepalive()
+        print(f"\n{C_RED}🛑 Keepalive daemon stopped successfully!{C_END}")
+        time.sleep(1.5)
+        return
+        
     if ping_choice in active_tunnels:
         selected = active_tunnels[ping_choice]
         try:
@@ -261,10 +306,9 @@ def status_and_diagnostic_hub():
             
         print(f"\n⏳ Sending 4 live packets to {target_ip}...\n")
         subprocess.run(["ping", "-c", "4", target_ip])
-    
-    input(f"\nPress Enter to return to main menu...")
+        input(f"\nPress Enter to return to main menu...")
 
-# Trigger Intro Animation Once
+# Trigger Animated Intro
 play_animated_intro()
 
 # Main CLI Loop
@@ -277,7 +321,7 @@ while True:
     print(f"  {C_GREEN}[2]{C_END} ⚡  Create / Edit Hybrid 6to4 > GRE6 Tunnel (Best Performance)")
     print(f"  {C_GREEN}[3]{C_END} 🔍  Check Status & Live Diagnostics (Ping Hub)")
     print(f"  {C_RED}[4]{C_END} ❌  Exit Hub")
-    print(f"{C_CYAN}" + "─"*60 + f"{C_END}")
+    print(f"{C_CYAN}" + "─"*72 + f"{C_END}")
     
     choice = input(f"{C_BOLD}👉 Select an option (1-4): {C_END}").strip()
     
