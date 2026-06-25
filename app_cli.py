@@ -260,7 +260,7 @@ network:
     ip6to4:
       mode: sit
       local: {local}
-      remote: any
+      remote: {remote}
       addresses:
         - "{local_v6}/16"
     gre6-to-mikro:
