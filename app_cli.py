@@ -3,6 +3,7 @@
 # =================================================================
 # 🚀 MIKRONETPLUS - ULTIMATE MULTI-TUNNEL HUB (ADVANCED EDIT MATRIX)
 # 📺 Presented by: Mikronet_plus YouTube Channel (2026)
+# 🌐 GitHub Repository: https://github.com/Mikronet-plus/netplan-gre-tunnel-wizard
 # =================================================================
 
 import os
@@ -11,6 +12,7 @@ import sys
 import time
 import re
 
+# Netplan and Keepalive Config Paths
 YAML_REGULAR_PATH = "/etc/netplan/60-mikronet-tunnel.yaml"
 YAML_6TO4_PATH = "/etc/netplan/70-mikronet-6to4-gre6.yaml"
 KEEPALIVE_SCRIPT_PATH = "/usr/local/bin/mikronet_keepalive.sh"
@@ -44,11 +46,12 @@ def play_animated_intro():
     print("╚" + "═"*58 + f"╝{C_END}\n")
     time.sleep(0.3)
     
-    slow_print(f"{C_GREEN}{C_BOLD}📢 FOLLOW US ON SOCIAL MEDIA FOR UPDATES:{C_END}", 0.03)
-    print(f"{C_CYAN}─{C_END}"*60)
-    slow_print(f"📺 YouTube : {C_YELLOW}{C_BOLD}https://www.youtube.com/@Mikronet_plus{C_END}", 0.04)
-    slow_print(f"🚀 Telegram: {C_YELLOW}{C_BOLD}https://t.me/Mikronet_plus{C_END}", 0.04)
-    print(f"{C_CYAN}─{C_END}"*60)
+    slow_print(f"{C_GREEN}{C_BOLD}📢 OFFICIAL PROJECT LINKS & SOCIAL MEDIA:{C_END}", 0.03)
+    print(f"{C_CYAN}─{C_END}"*68)
+    slow_print(f"🐙 GitHub  : {C_GREEN}{C_BOLD}https://github.com/Mikronet-plus/netplan-gre-tunnel-wizard{C_END}", 0.03)
+    slow_print(f"📺 YouTube : {C_YELLOW}{C_BOLD}https://www.youtube.com/@Mikronet_plus{C_END}", 0.03)
+    slow_print(f"🚀 Telegram: {C_YELLOW}{C_BOLD}https://t.me/Mikronet_plus{C_END}", 0.03)
+    print(f"{C_CYAN}─{C_END}"*68)
     
     slow_print(f"\n{C_GREEN}⌛ Loading Core Components, Please Wait...{C_END}", 0.02)
     time.sleep(1.2)
@@ -98,23 +101,39 @@ def ipv4_to_6to4(ipv4_str):
     except:
         return None
 
-def parse_yaml_fields(path):
+def parse_yaml_fields(path, tunnel_type):
+    """پارسر هوشمند تفکیک شده برای متد Regular و Hybrid 6to4"""
     data = {"name": "", "local": "", "remote": "", "tunnel_cidr": ""}
     if not os.path.exists(path):
         return None
     with open(path, "r", encoding="utf-8") as f:
         content = f.read()
+        
+        # استخراج نام
         name_match = re.search(r"# NAME:\s*(.*)", content)
-        data["name"] = name_match.group(1).strip() if name_match else "Unnamed_Tunnel"
+        data["name"] = name_match.group(1).strip() if name_match else f"Unnamed_{tunnel_type}"
         
-        local_match = re.search(r"local:\s*([\d\.]+|[a-fA-F\d\:]+)", content)
-        if local_match: data["local"] = local_match.group(1).strip()
-        
-        remote_match = re.search(r"remote:\s*([\d\.]+|[a-fA-F\d\:]+|any)", content)
-        if remote_match: data["remote"] = remote_match.group(1).strip()
-        
-        cidr_match = re.search(r"-\s*([\d\.]+/\d+|[a-fA-F\d\:]+/\d+)", content)
-        if cidr_match: data["tunnel_cidr"] = cidr_match.group(1).strip()
+        if tunnel_type == "Regular":
+            local_match = re.search(r"local:\s*([\d\.]+)", content)
+            remote_match = re.search(r"remote:\s*([\d\.]+)", content)
+            cidr_match = re.search(r"-\s*([\d\.]+/\d+)", content)
+            
+            if local_match: data["local"] = local_match.group(1).strip()
+            if remote_match: data["remote"] = remote_match.group(1).strip()
+            if cidr_match: data["tunnel_cidr"] = cidr_match.group(1).strip()
+        else:
+            # متد Hybrid 6to4 (استخراج آی‌پی IPv4 اصلی لوکال از بخش sit)
+            sit_block = re.search(r"ip6to4:\s*mode:\s*sit\s*local:\s*([\d\.]+)", content)
+            if sit_block:
+                data["local"] = sit_block.group(1).strip()
+            
+            # پیدا کردن ریموت آی‌پی مایکروتیک (از روی فرمت IPv6 تغییر یافته ریموت یا به صورت مستقیم)
+            # برای سادگی، آدرس IPv4 ریموت مایکروتیک را از کاربر مجدد تایید میگیریم یا سورس را بازسازی میکنیم
+            # اما برای ادیت تمیز، بخشAddresses انتهای gre6-to-mikro را برمیداریم
+            cidr_matches = re.findall(r"-\s*([\d\.]+/\d+)", content)
+            if cidr_matches:
+                data["tunnel_cidr"] = cidr_matches[-1].strip()
+                
     return data
 
 def get_input_with_default(prompt, default_val):
@@ -177,11 +196,11 @@ def wizard_build_tunnel(path, tunnel_type, default_data=None):
     
     remote_tunnel_ip = extract_remote_ping_ip(tunnel_cidr)
     
-    if tunnel_type == "Hybrid":
-        local_v6 = ipv4_to_6to4(local)
-        remote_v6 = ipv4_to_6to4(remote)
-        if not local_v6 or not remote_v6:
-            print(f"\n{C_RED}❌ Invalid IPv4 Format!{C_END}"); input("\nPress Enter..."); return
+    local_v6 = ipv4_to_6to4(local)
+    remote_v6 = ipv4_to_6to4(remote)
+    
+    if not local_v6 or not remote_v6:
+        print(f"\n{C_RED}❌ Invalid IPv4 Format!{C_END}"); input("\nPress Enter..."); return
             
     print(f"\n{C_BOLD}📊 Preview Configuration [{t_name}]:{C_END}")
     print(f"  ▫️ Local IP  : {C_GREEN}{local}{C_END}")
@@ -234,10 +253,10 @@ def menu_edit_tunnel():
     
     tunnels_pool = []
     
-    reg_data = parse_yaml_fields(YAML_REGULAR_PATH)
+    reg_data = parse_yaml_fields(YAML_REGULAR_PATH, "Regular")
     if reg_data: tunnels_pool.append({"path": YAML_REGULAR_PATH, "type": "Regular", "data": reg_data})
         
-    v6_data = parse_yaml_fields(YAML_6TO4_PATH)
+    v6_data = parse_yaml_fields(YAML_6TO4_PATH, "Hybrid")
     if v6_data: tunnels_pool.append({"path": YAML_6TO4_PATH, "type": "Hybrid", "data": v6_data})
     
     if not tunnels_pool:
@@ -309,7 +328,7 @@ def status_and_diagnostic_hub():
     active_tunnels = {}
     index = 1
     
-    meta_reg = parse_yaml_fields(YAML_REGULAR_PATH)
+    meta_reg = parse_yaml_fields(YAML_REGULAR_PATH, "Regular")
     print(f"{C_BOLD}[Method 1] Regular IPv4 GRE:{C_END}")
     if meta_reg:
         if_check = subprocess.run(["ip", "link", "show", "gre-to-mikro"], capture_output=True, text=True)
@@ -322,7 +341,7 @@ def status_and_diagnostic_hub():
         
     print("-" * 75)
     
-    meta_6to4 = parse_yaml_fields(YAML_6TO4_PATH)
+    meta_6to4 = parse_yaml_fields(YAML_6TO4_PATH, "Hybrid")
     print(f"{C_BOLD}[Method 2] Hybrid 6to4 > GRE6:{C_END}")
     if meta_6to4:
         if_check = subprocess.run(["ip", "link", "show", "gre6-to-mikro"], capture_output=True, text=True)
@@ -393,5 +412,6 @@ while True:
     elif choice == '5':
         clear_screen()
         print(f"\n{C_GREEN}{C_BOLD}👋 Thank you for using MikroNetPlus CLI Manager!{C_END}")
+        print(f"{C_CYAN}🐙 Project Source: https://github.com/Mikronet-plus/netplan-gre-tunnel-wizard{C_END}")
         print(f"{C_CYAN}📺 Don't forget to subscribe to Mikronet_plus on YouTube.{C_END}\n")
         break
