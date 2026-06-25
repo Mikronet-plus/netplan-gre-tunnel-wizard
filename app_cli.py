@@ -13,12 +13,10 @@ import time
 import re
 import shutil
 
-# Netplan and Keepalive Config Paths
 YAML_REGULAR_PATH = "/etc/netplan/60-mikronet-tunnel.yaml"
 YAML_6TO4_PATH = "/etc/netplan/70-mikronet-6to4-gre6.yaml"
 KEEPALIVE_SCRIPT_PATH = "/usr/local/bin/mikronet_keepalive.sh"
 
-# Terminal Colors
 C_GREEN = "\033[92m"
 C_YELLOW = "\033[93m"
 C_RED = "\033[91m"
@@ -34,14 +32,12 @@ def clear_screen():
     os.system('clear')
 
 def get_terminal_width():
-    """محاسبه عرض ترمینال برای وسط‌چین کردن دقیق متون"""
     try:
         return shutil.get_terminal_size().columns
     except:
         return 80
 
 def slow_print(text, speed=0.03, center=False):
-    """چاپ کاراکتر به کاراکتر با قابلیت هوشمند وسط‌چین کردن متن"""
     if center:
         width = get_terminal_width()
         plain_text = re.sub(r'\033\[[0-9;]*m', '', text)
@@ -54,13 +50,12 @@ def slow_print(text, speed=0.03, center=False):
         time.sleep(speed)
     print()
 
-def play_animated_loading_bar(text, color, duration=0.02, bar_width=40):
-    """تابع عمومی لودینگ پیشرفته درصدی برای سینمایی کردن اسکریپت"""
+def play_animated_loading_bar(text, color, duration=0.06, bar_width=40):
     width = get_terminal_width()
     bar_pad = max(0, (width - bar_width - 12) // 2)
     
     slow_print(text, 0.02, center=True)
-    time.sleep(0.2)
+    time.sleep(0.4)
     
     for i in range(1, bar_width + 1):
         percent = int((i / bar_width) * 100)
@@ -80,11 +75,10 @@ def play_animated_intro():
     print(" " * padding + f"{C_CYAN}{C_BOLD}╔" + "═"*(len(box_title)+2) + "╗")
     print(" " * padding + f"║ {box_title} ║")
     print(" " * padding + f"╚" + "═"*(len(box_title)+2) + f"╝{C_END}\n")
-    time.sleep(0.3)
-    
-    # اجرای لودینگ درصدی ورودی اول ویدیو
-    play_animated_loading_bar("⏳ LOADING CORE MATRIX INFRASTRUCTURE...", C_GREEN, duration=0.03)
     time.sleep(0.2)
+    
+    play_animated_loading_bar("⏳ LOADING CORE MATRIX INFRASTRUCTURE...", C_GREEN, duration=0.06)
+    time.sleep(0.3)
     
     sep = "─" * 68
     sep_pad = max(0, (width - 68) // 2)
@@ -97,14 +91,13 @@ def play_animated_intro():
     slow_print(f"🚀 Telegram: {C_YELLOW}{C_BOLD}https://t.me/Mikronet_plus{C_END}", 0.01, center=True)
     
     print(" " * sep_pad + f"{C_CYAN}{sep}{C_END}")
-    time.sleep(1.8)
+    time.sleep(2.0)
 
 def play_cinematic_outro():
-    """افکت لودینگ خروج همگام‌سازی شده با ورود"""
     clear_screen()
     print("\n" * 3)
     
-    play_animated_loading_bar("🛑 DISCONNECTING FROM MIKRONETPLUS HUB CORE...", C_RED, duration=0.02)
+    play_animated_loading_bar("🛑 DISCONNECTING FROM MIKRONETPLUS HUB CORE...", C_RED, duration=0.04)
     time.sleep(0.3)
     
     slow_print(f"{C_GREEN}{C_BOLD}✨ Thank you for using MikroNetPlus CLI Manager! ✨{C_END}", 0.03, center=True)
@@ -359,10 +352,11 @@ def status_and_diagnostic_hub():
     if meta_reg:
         if_check = subprocess.run(["ip", "link", "show", "gre-to-mikro"], capture_output=True, text=True)
         status = f"{C_GREEN}UP (Running){C_END}" if ("UP" in if_check.stdout or "UNKNOWN" in if_check.stdout) else f"{C_YELLOW}DOWN{C_END}"
-        print(f"  [{index}] Interface: {C_CYAN}gre-to-mikro{C_END} | Name: {C_BOLD}{meta_reg['name']}{C_END} | IP: {meta_reg['tunnel_cidr']} | Status: {status}")
+        print(f"  ⚡ Target Option -> {C_GREEN}[{index}]{C_END} Interface: {C_CYAN}gre-to-mikro{C_END} | Name: {C_BOLD}{meta_reg['name']}{C_END} | IP: {meta_reg['tunnel_cidr']} | Status: {status}")
         active_tunnels[str(index)] = {"name": meta_reg['name'], "ip": meta_reg['tunnel_cidr']}
         index += 1
-    else: print(f"  ❌ {C_RED}Not Configured{C_END}")
+    else:
+        print(f"  ❌ {C_RED}Not Configured{C_END}")
         
     print("-" * 75)
     
@@ -371,43 +365,61 @@ def status_and_diagnostic_hub():
     if meta_6to4:
         if_check = subprocess.run(["ip", "link", "show", "gre6-to-mikro"], capture_output=True, text=True)
         status = f"{C_GREEN}UP (Running){C_END}" if ("UP" in if_check.stdout or "UNKNOWN" in if_check.stdout) else f"{C_YELLOW}DOWN{C_END}"
-        print(f"  [{index}] Interface: {C_CYAN}gre6-to-mikro{C_END} | Name: {C_BOLD}{meta_6to4['name']}{C_END} | IP: {meta_6to4['tunnel_cidr']} | Status: {status}")
+        print(f"  ⚡ Target Option -> {C_GREEN}[{index}]{C_END} Interface: {C_CYAN}gre6-to-mikro{C_END} | Name: {C_BOLD}{meta_6to4['name']}{C_END} | IP: {meta_6to4['tunnel_cidr']} | Status: {status}")
         active_tunnels[str(index)] = {"name": meta_6to4['name'], "ip": meta_6to4['tunnel_cidr']}
         index += 1
-    else: print(f"  ❌ {C_RED}Not Configured{C_END}")
+    else:
+        print(f"  ❌ {C_RED}Not Configured{C_END}")
         
     print("═"*75)
     
     print(f"{C_BOLD}[Keepalive Daemon Status]:{C_END}")
     is_running = os.system(f"pgrep -f {KEEPALIVE_SCRIPT_PATH} > /dev/null 2>&1") == 0
-    if is_running: print(f"  🟢 Keepalive Service: {C_GREEN}ACTIVE (Pinging every 20s in background){C_END}")
-    else: print(f"  🔴 Keepalive Service: {C_RED}INACTIVE{C_END}")
+    if is_running:
+        print(f"  🟢 Keepalive Service: {C_GREEN}ACTIVE (Pinging every 20s in background){C_END}")
+    else:
+        print(f"  🔴 Keepalive Service: {C_RED}INACTIVE{C_END}")
+        
     print("═"*75)
 
-    print(f"  {C_GREEN}[1-2]{C_END} Select Tunnel number to Ping diagnostics")
-    print(f"  {C_RED}[K]{C_END}   Stop Background Keepalive Service")
-    print(f"  {C_YELLOW}[Enter]{C_END} Return to Main Menu")
+    print(f"{C_BOLD}📱 AVAILABLE ACTIONS:{C_END}")
+    if active_tunnels:
+        range_str = "1" if len(active_tunnels) == 1 else f"1-{len(active_tunnels)}"
+        print(f"  {C_GREEN}[{range_str}]{C_END} Select Tunnel number to launch Live Ping Diagnostics")
+        
+    print(f"  {C_RED}[K]{C_END}   Stop Background Keepalive Daemon Service")
+    print(f"  {C_YELLOW}[Enter]{C_END} Return back to Main Menu Core")
     print("-" * 75)
     
     ping_choice = input(f"{C_BOLD}👉 Choice: {C_END}").strip()
+    
     if ping_choice.lower() == 'k':
         stop_background_keepalive()
-        print(f"\n{C_RED}🛑 Keepalive daemon stopped successfully!{C_END}"); time.sleep(1.5); return
+        print(f"\n{C_RED}🛑 Keepalive daemon stopped successfully!{C_END}")
+        time.sleep(1.5)
+        return
+        
+    if not ping_choice:
+        return
         
     if ping_choice in active_tunnels:
         selected = active_tunnels[ping_choice]
         remote_ip = extract_remote_ping_ip(selected['ip'])
+            
         print(f"\n🚀 Launching live diagnostics for [{C_BOLD}{selected['name']}{C_END}]...")
         target_ip = input(f"{C_YELLOW}🎯 Target Remote Tunnel IP [Default auto-detect: {remote_ip}]: {C_END}").strip()
         if not target_ip: target_ip = remote_ip
+            
         print(f"\n⏳ Sending 4 live packets to {target_ip}...\n")
         subprocess.run(["ping", "-c", "4", target_ip])
-        input(f"\nPress Enter to return to main menu...")
+        input(f"\n{C_GREEN}ℹ️  Diagnostics finished.{C_END} Press Enter to return...")
+    else:
+        if active_tunnels:
+            print(f"{C_RED}❌ Invalid selection!{C_END}")
+            time.sleep(1)
 
-# TRIGGER PERFECT PARALLEL INTRO
 play_animated_intro()
 
-# Main CLI Loop
 while True:
     clear_screen()
     show_big_banner()
