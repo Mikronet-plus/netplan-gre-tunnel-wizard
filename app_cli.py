@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # =================================================================
-# 🚀 MIKRONETPLUS - MULTI-TUNNEL HUB (SAFE OVERWRITE & KEEPALIVE)
+# 🚀 MIKRONETPLUS - MULTI-TUNNEL HUB (TRUE EDIT MODE & KEEPALIVE)
 # 📺 Presented by: Mikronet_plus YouTube Channel (2026)
 # =================================================================
 
@@ -81,7 +81,7 @@ done
         subprocess.Popen(["nohup", KEEPALIVE_SCRIPT_PATH], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, preexec_fn=os.setpgrp)
         print(f"{C_GREEN}🔄 Background Keepalive Core activated! (Pinging {remote_ip} every 20s){C_END}")
     except:
-        print(f"{C_RED}⚠️ Failed to initialize background keepalive daemon.{C_END}")
+        pass
 
 def stop_background_keepalive():
     try:
@@ -98,18 +98,25 @@ def ipv4_to_6to4(ipv4_str):
     except:
         return None
 
-def get_tunnel_metadata(path):
+def parse_yaml_fields(path):
+    """استخراج پیشرفته اطلاعات فایل نت‌پلان برای بخش ادیت"""
+    data = {"name": "Regular_GRE", "local": "", "remote": "", "tunnel_cidr": ""}
     if not os.path.exists(path):
-        return None
-    tunnel_name = "Unnamed_Tunnel"
-    tunnel_ip = "Unknown"
+        return data
     with open(path, "r", encoding="utf-8") as f:
         content = f.read()
         name_match = re.search(r"# NAME:\s*(.*)", content)
-        if name_match: tunnel_name = name_match.group(1).strip()
-        ip_match = re.search(r"-\s*([\d\.]+)/?\d*", content)
-        if ip_match: tunnel_ip = ip_match.group(1).strip()
-    return {"name": tunnel_name, "ip": tunnel_ip}
+        if name_match: data["name"] = name_match.group(1).strip()
+        
+        local_match = re.search(r"local:\s*([\d\.]+|[a-fA-F\d\:]+)", content)
+        if local_match: data["local"] = local_match.group(1).strip()
+        
+        remote_match = re.search(r"remote:\s*([\d\.]+|[a-fA-F\d\:]+|any)", content)
+        if remote_match: data["remote"] = remote_match.group(1).strip()
+        
+        cidr_match = re.search(r"-\s*([\d\.]+/\d+|[a-fA-F\d\:]+/\d+)", content)
+        if cidr_match: data["tunnel_cidr"] = cidr_match.group(1).strip()
+    return data
 
 def force_up_interface(iface_name, remote_tunnel_ip):
     subprocess.run(["ip", "link", "set", "dev", iface_name, "up"])
@@ -122,26 +129,38 @@ def force_up_interface(iface_name, remote_tunnel_ip):
         print(f"\n{C_YELLOW}⏳ Sending 4 live verification packets to {remote_tunnel_ip}:{C_END}\n")
         subprocess.run(["ping", "-c", "4", remote_tunnel_ip])
 
+def get_input_with_default(prompt, default_val):
+    """گرفتن ورودی همراه با مقدار پیش‌فرض برای حالت ادیت"""
+    if default_val:
+        res = input(f"{prompt} {C_CYAN}(Default: {default_val}){C_END}: ").strip()
+        return res if res else default_val
+    else:
+        return input(f"{prompt}: ").strip()
+
 def manage_regular_gre():
     clear_screen()
-    print(f"{C_CYAN}{C_BOLD}🛠️  METHOD 1: REGULAR IPv4 GRE TUNNEL{C_END}")
+    print(f"{C_CYAN}{C_BOLD}🛠️  METHOD 1: REGULAR IPv4 GRE TUNNEL CORE{C_END}")
     print("─"*60)
     
-    # 🔍 چک کردن هوشمند تونل قبلی
-    meta = get_tunnel_metadata(YAML_REGULAR_PATH)
-    if meta:
-        print(f"{C_YELLOW}⚠️  WARNING: An active Regular GRE tunnel [{C_BOLD}{meta['name']}{C_END}{C_YELLOW}] already exists!{C_END}")
-        overwrite = input(f"{C_RED}{C_BOLD}🤔 Do you want to OVERWRITE and delete the existing tunnel? (y/n): {C_END}").strip().lower()
-        if overwrite != 'y':
-            input(f"\nOperation canceled. Press Enter to return to main menu...")
-            return
-
-    t_name = input(f"{C_YELLOW}🏷️  Enter a Custom Name for this tunnel (e.g., my_tunnel): {C_END}").strip().replace(" ", "_")
-    if not t_name: t_name = "Regular_GRE"
+    existing = parse_yaml_fields(YAML_REGULAR_PATH)
+    is_edit_mode = False
+    
+    if os.path.exists(YAML_REGULAR_PATH):
+        print(f"{C_YELLOW}⚠️  An active Regular GRE tunnel [{C_BOLD}{existing['name']}{C_END}{C_YELLOW}] already exists!{C_END}")
+        print(f"  {C_GREEN}[E]{C_END} Edit/Modify existing tunnel parameters")
+        print(f"  {C_RED}[O]{C_END} Overwrite completely (Fresh setup)")
+        print(f"  {C_BOLD}[C]{C_END} Cancel operation")
+        mode_choice = input(f"\n{C_BOLD}👉 Action (E/O/C): {C_END}").strip().lower()
         
-    local = input(f"{C_YELLOW}🔹 1. Local Linux Public IPv4: {C_END}").strip()
-    remote = input(f"{C_YELLOW}🔹 2. Remote MikroTik Public IPv4: {C_END}").strip()
-    tunnel_cidr = input(f"{C_YELLOW}🔹 3. Tunnel Internal IP (e.g., 10.10.10.1/30): {C_END}").strip()
+        if mode_choice == 'c' or not mode_choice:
+            return
+        elif mode_choice == 'e':
+            is_edit_mode = True
+
+    t_name = get_input_with_default(f"{C_YELLOW}🏷️  Enter Tunnel Name{C_END}", existing['name'] if is_edit_mode else "Regular_GRE").replace(" ", "_")
+    local = get_input_with_default(f"{C_YELLOW}🔹 1. Local Linux Public IPv4{C_END}", existing['local'] if is_edit_mode else "")
+    remote = get_input_with_default(f"{C_YELLOW}🔹 2. Remote MikroTik Public IPv4{C_END}", existing['remote'] if is_edit_mode else "")
+    tunnel_cidr = get_input_with_default(f"{C_YELLOW}🔹 3. Tunnel Internal IP (e.g., 10.10.10.1/30){C_END}", existing['tunnel_cidr'] if is_edit_mode else "")
     
     try:
         base_ip = tunnel_cidr.split('/')[0]
@@ -157,7 +176,7 @@ def manage_regular_gre():
     print(f"  ▫️ Tunnel IP : {C_GREEN}{tunnel_cidr}{C_END}")
     print("─"*60)
     
-    if input(f"{C_BOLD}🤔 Apply this tunnel? (y/n): {C_END}").strip().lower() == 'y':
+    if input(f"{C_BOLD}🤔 Apply this tunnel configuration? (y/n): {C_END}").strip().lower() == 'y':
         yaml_content = f"# NAME: {t_name}\nnetwork:\n  version: 2\n  tunnels:\n    gre-to-mikro:\n      mode: gre\n      local: {local}\n      remote: {remote}\n      addresses:\n        - {tunnel_cidr}\n"
         with open(YAML_REGULAR_PATH, "w", encoding="utf-8") as f: f.write(yaml_content)
         
@@ -165,30 +184,35 @@ def manage_regular_gre():
         if subprocess.run(["netplan", "apply"]).returncode == 0:
             time.sleep(1)
             force_up_interface("gre-to-mikro", remote_tunnel_ip)
-            print(f"\n{C_GREEN}{C_BOLD}✅ Tunnel '{t_name}' is active and synced with system routing table!{C_END}")
+            print(f"\n{C_GREEN}{C_BOLD}✅ Tunnel '{t_name}' applied and synced successfully!{C_END}")
         else: print(f"\n{C_RED}❌ Error! Netplan Apply Failed.{C_END}")
     input(f"\nPress Enter to return to main menu...")
 
 def manage_6to4_gre6():
     clear_screen()
-    print(f"{C_CYAN}{C_BOLD}🛠️  METHOD 2: HYBRID 6to4 > GRE6 TUNNEL (IPv6 Infrastructure){C_END}")
+    print(f"{C_CYAN}{C_BOLD}🛠️  METHOD 2: HYBRID 6to4 > GRE6 TUNNEL CORE{C_END}")
     print("─"*60)
     
-    # 🔍 چک کردن هوشمند تونل قبلی
-    meta = get_tunnel_metadata(YAML_6TO4_PATH)
-    if meta:
-        print(f"{C_YELLOW}⚠️  WARNING: An active Hybrid 6to4 tunnel [{C_BOLD}{meta['name']}{C_END}{C_YELLOW}] already exists!{C_END}")
-        overwrite = input(f"{C_RED}{C_BOLD}🤔 Do you want to OVERWRITE and delete the existing tunnel? (y/n): {C_END}").strip().lower()
-        if overwrite != 'y':
-            input(f"\nOperation canceled. Press Enter to return to main menu...")
-            return
-
-    t_name = input(f"{C_YELLOW}🏷️  Enter a Custom Name for this tunnel (e.g., tunnel_6to4): {C_END}").strip().replace(" ", "_")
-    if not t_name: t_name = "Hybrid_6to4_GRE6"
+    # برای ۶تو۴، آی‌پی لوکال اصلی را از اینترفیس sit یا خود کامپوننت دیتای فایل در میاریم
+    existing = parse_yaml_fields(YAML_6TO4_PATH)
+    is_edit_mode = False
+    
+    if os.path.exists(YAML_6TO4_PATH):
+        print(f"{C_YELLOW}⚠️  An active Hybrid 6to4 tunnel [{C_BOLD}{existing['name']}{C_END}{C_YELLOW}] already exists!{C_END}")
+        print(f"  {C_GREEN}[E]{C_END} Edit/Modify existing tunnel parameters")
+        print(f"  {C_RED}[O]{C_END} Overwrite completely (Fresh setup)")
+        print(f"  {C_BOLD}[C]{C_END} Cancel operation")
+        mode_choice = input(f"\n{C_BOLD}👉 Action (E/O/C): {C_END}").strip().lower()
         
-    local_v4 = input(f"{C_YELLOW}🔹 1. Local Linux Public IPv4: {C_END}").strip()
-    remote_v4 = input(f"{C_YELLOW}🔹 2. Remote MikroTik Public IPv4: {C_END}").strip()
-    tunnel_cidr = input(f"{C_YELLOW}🔹 3. Tunnel Internal IPv4 (e.g., 10.20.20.1/30): {C_END}").strip()
+        if mode_choice == 'c' or not mode_choice:
+            return
+        elif mode_choice == 'e':
+            is_edit_mode = True
+
+    t_name = get_input_with_default(f"{C_YELLOW}🏷️  Enter Tunnel Name{C_END}", existing['name'] if is_edit_mode else "Hybrid_6to4_GRE6").replace(" ", "_")
+    local_v4 = get_input_with_default(f"{C_YELLOW}🔹 1. Local Linux Public IPv4{C_END}", existing['local'] if is_edit_mode else "")
+    remote_v4 = get_input_with_default(f"{C_YELLOW}🔹 2. Remote MikroTik Public IPv4{C_END}", existing['remote'] if is_edit_mode else "")
+    tunnel_cidr = get_input_with_default(f"{C_YELLOW}🔹 3. Tunnel Internal IPv4 (e.g., 10.20.20.1/30){C_END}", existing['tunnel_cidr'] if is_edit_mode else "")
     
     try:
         base_ip = tunnel_cidr.split('/')[0]
@@ -211,7 +235,7 @@ def manage_6to4_gre6():
     print(f"  ▫️ MikroTik Remote v6: {C_CYAN}{remote_v6}/16{C_END}")
     print("─"*60)
     
-    if input(f"{C_BOLD}🤔 Apply this Hybrid Tunnel? (y/n): {C_END}").strip().lower() == 'y':
+    if input(f"{C_BOLD}🤔 Apply this Hybrid Tunnel configuration? (y/n): {C_END}").strip().lower() == 'y':
         yaml_content = f"""# NAME: {t_name}
 network:
   version: 2
@@ -236,7 +260,7 @@ network:
             time.sleep(1)
             subprocess.run(["ip", "link", "set", "dev", "ip6to4", "up"])
             force_up_interface("gre6-to-mikro", remote_tunnel_ip)
-            print(f"\n{C_GREEN}{C_BOLD}✅ Hybrid Tunnel '{t_name}' is active and synced with system routing table!{C_END}")
+            print(f"\n{C_GREEN}{C_BOLD}✅ Hybrid Tunnel '{t_name}' applied and synced successfully!{C_END}")
         else: print(f"\n{C_RED}❌ Error! Netplan Apply Failed.{C_END}")
     input(f"\nPress Enter to return to main menu...")
 
@@ -248,26 +272,26 @@ def status_and_diagnostic_hub():
     active_tunnels = {}
     index = 1
     
-    meta_reg = get_tunnel_metadata(YAML_REGULAR_PATH)
+    meta_reg = parse_yaml_fields(YAML_REGULAR_PATH) if os.path.exists(YAML_REGULAR_PATH) else None
     print(f"{C_BOLD}[Method 1] Regular IPv4 GRE:{C_END}")
     if meta_reg:
         if_check = subprocess.run(["ip", "link", "show", "gre-to-mikro"], capture_output=True, text=True)
         status = f"{C_GREEN}UP (Running){C_END}" if ("UP" in if_check.stdout or "UNKNOWN" in if_check.stdout) else f"{C_YELLOW}DOWN{C_END}"
-        print(f"  [{index}] Interface: {C_CYAN}gre-to-mikro{C_END} | Name: {C_BOLD}{meta_reg['name']}{C_END} | IP: {meta_reg['ip']} | Status: {status}")
-        active_tunnels[str(index)] = {"name": meta_reg['name'], "ip": meta_reg['ip'], "type": "Regular"}
+        print(f"  [{index}] Interface: {C_CYAN}gre-to-mikro{C_END} | Name: {C_BOLD}{meta_reg['name']}{C_END} | IP: {meta_reg['tunnel_cidr']} | Status: {status}")
+        active_tunnels[str(index)] = {"name": meta_reg['name'], "ip": meta_reg['tunnel_cidr'], "type": "Regular"}
         index += 1
     else:
         print(f"  ❌ {C_RED}Not Configured{C_END}")
         
     print("-" * 75)
     
-    meta_6to4 = get_tunnel_metadata(YAML_6TO4_PATH)
+    meta_6to4 = parse_yaml_fields(YAML_6TO4_PATH) if os.path.exists(YAML_6TO4_PATH) else None
     print(f"{C_BOLD}[Method 2] Hybrid 6to4 > GRE6:{C_END}")
     if meta_6to4:
         if_check = subprocess.run(["ip", "link", "show", "gre6-to-mikro"], capture_output=True, text=True)
         status = f"{C_GREEN}UP (Running){C_END}" if ("UP" in if_check.stdout or "UNKNOWN" in if_check.stdout) else f"{C_YELLOW}DOWN{C_END}"
-        print(f"  [{index}] Interface: {C_CYAN}gre6-to-mikro{C_END} | Name: {C_BOLD}{meta_6to4['name']}{C_END} | IP: {meta_6to4['ip']} | Status: {status}")
-        active_tunnels[str(index)] = {"name": meta_6to4['name'], "ip": meta_6to4['ip'], "type": "Hybrid"}
+        print(f"  [{index}] Interface: {C_CYAN}gre6-to-mikro{C_END} | Name: {C_BOLD}{meta_6to4['name']}{C_END} | IP: {meta_6to4['tunnel_cidr']} | Status: {status}")
+        active_tunnels[str(index)] = {"name": meta_6to4['name'], "ip": meta_6to4['tunnel_cidr'], "type": "Hybrid"}
         index += 1
     else:
         print(f"  ❌ {C_RED}Not Configured{C_END}")
@@ -298,11 +322,11 @@ def status_and_diagnostic_hub():
     if ping_choice in active_tunnels:
         selected = active_tunnels[ping_choice]
         try:
-            parts = selected['ip'].split('.')
+            parts = selected['ip'].split('/')[0].split('.')
             last_octet = int(parts[3])
             remote_ip = f"{parts[0]}.{parts[1]}.{parts[2]}.{last_octet + 1 if last_octet % 2 != 0 else last_octet - 1}"
         except:
-            remote_ip = selected['ip']
+            remote_ip = selected['ip'].split('/')[0]
             
         print(f"\n🚀 Launching live diagnostics for [{C_BOLD}{selected['name']}{C_END}]...")
         target_ip = input(f"{C_YELLOW}🎯 Target Remote Tunnel IP [Default auto-detect: {remote_ip}]: {C_END}").strip()
