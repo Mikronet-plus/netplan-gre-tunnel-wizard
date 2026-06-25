@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # =================================================================
-# 🚀 MIKRONETPLUS - ULTIMATE MULTI-TUNNEL HUB (CINEMATIC EDITION)
+# 🚀 MIKRONETPLUS - ULTIMATE MULTI-TUNNEL HUB (CINEMATIC MATRIX-V2)
 # 📺 Presented by: Mikronet_plus YouTube Channel (2026)
 # 🌐 GitHub Repository: https://github.com/Mikronet-plus/netplan-gre-tunnel-wizard
 # =================================================================
@@ -44,7 +44,6 @@ def slow_print(text, speed=0.03, center=False):
     """چاپ کاراکتر به کاراکتر با قابلیت هوشمند وسط‌چین کردن متن"""
     if center:
         width = get_terminal_width()
-        # حذف کدهای رنگی برای محاسبه دقیق طول واقعی متن
         plain_text = re.sub(r'\033\[[0-9;]*m', '', text)
         padding = max(0, (width - len(plain_text)) // 2)
         sys.stdout.write(" " * padding)
@@ -55,11 +54,25 @@ def slow_print(text, speed=0.03, center=False):
         time.sleep(speed)
     print()
 
+def play_animated_loading_bar(text, color, duration=0.02, bar_width=40):
+    """تابع عمومی لودینگ پیشرفته درصدی برای سینمایی کردن اسکریپت"""
+    width = get_terminal_width()
+    bar_pad = max(0, (width - bar_width - 12) // 2)
+    
+    slow_print(text, 0.02, center=True)
+    time.sleep(0.2)
+    
+    for i in range(1, bar_width + 1):
+        percent = int((i / bar_width) * 100)
+        sys.stdout.write("\r" + " " * bar_pad + f"{C_CYAN}[{color}" + "█"*i + " "*(bar_width-i) + f"{C_CYAN}] {C_YELLOW}{percent}%")
+        sys.stdout.flush()
+        time.sleep(duration)
+    print("\n")
+
 def play_animated_intro():
     clear_screen()
     width = get_terminal_width()
     
-    # طراحی باکس ماتریکسی وسط‌چین
     box_title = "⚡ INITIALIZING MIKRONETPLUS CORE SYSTEM... ⚡"
     padding = max(0, (width - len(box_title)) // 2)
     
@@ -67,50 +80,39 @@ def play_animated_intro():
     print(" " * padding + f"{C_CYAN}{C_BOLD}╔" + "═"*(len(box_title)+2) + "╗")
     print(" " * padding + f"║ {box_title} ║")
     print(" " * padding + f"╚" + "═"*(len(box_title)+2) + f"╝{C_END}\n")
-    time.sleep(0.4)
+    time.sleep(0.3)
     
-    # خط جداکننده وسط چین
+    # اجرای لودینگ درصدی ورودی اول ویدیو
+    play_animated_loading_bar("⏳ LOADING CORE MATRIX INFRASTRUCTURE...", C_GREEN, duration=0.03)
+    time.sleep(0.2)
+    
     sep = "─" * 68
     sep_pad = max(0, (width - 68) // 2)
     
     slow_print(f"{C_GREEN}{C_BOLD}📢 OFFICIAL PROJECT LINKS & SOCIAL MEDIA:{C_END}", 0.02, center=True)
     print(" " * sep_pad + f"{C_CYAN}{sep}{C_END}")
     
-    slow_print(f"🐙 GitHub  : {C_GREEN}{C_BOLD}https://github.com/Mikronet-plus/netplan-gre-tunnel-wizard{C_END}", 0.02, center=True)
-    slow_print(f"📺 YouTube : {C_YELLOW}{C_BOLD}https://www.youtube.com/@Mikronet_plus{C_END}", 0.02, center=True)
-    slow_print(f"🚀 Telegram: {C_YELLOW}{C_BOLD}https://t.me/Mikronet_plus{C_END}", 0.02, center=True)
+    slow_print(f"🐙 GitHub  : {C_GREEN}{C_BOLD}https://github.com/Mikronet-plus/netplan-gre-tunnel-wizard{C_END}", 0.01, center=True)
+    slow_print(f"📺 YouTube : {C_YELLOW}{C_BOLD}https://www.youtube.com/@Mikronet_plus{C_END}", 0.01, center=True)
+    slow_print(f"🚀 Telegram: {C_YELLOW}{C_BOLD}https://t.me/Mikronet_plus{C_END}", 0.01, center=True)
     
     print(" " * sep_pad + f"{C_CYAN}{sep}{C_END}")
-    
-    slow_print(f"\n{C_GREEN}⌛ Loading Core Matrix Components, Please Wait...{C_END}", 0.01, center=True)
-    time.sleep(1.5)
+    time.sleep(1.8)
 
 def play_cinematic_outro():
-    """افکت خروج فوق‌العاده اسلو موشن و سایبرپانکی"""
+    """افکت لودینگ خروج همگام‌سازی شده با ورود"""
     clear_screen()
-    width = get_terminal_width()
-    
     print("\n" * 3)
-    slow_print(f"{C_RED}{C_BOLD}🛑 DISCONNECTING FROM MIKRONETPLUS HUB CORE...{C_END}", 0.04, center=True)
-    time.sleep(0.4)
     
-    # شبیه‌سازی لودینگ خروج ماتریکسی
-    bar_width = 40
-    bar_pad = max(0, (width - bar_width - 10) // 2)
-    for i in range(1, bar_width + 1):
-        percent = int((i / bar_width) * 100)
-        sys.stdout.write("\r" + " " * bar_pad + f"{C_CYAN}[{C_GREEN}" + "█"*i + " "*(bar_width-i) + f"{C_CYAN}] {C_YELLOW}{percent}%")
-        sys.stdout.flush()
-        time.sleep(0.02)
-    print("\n")
-    
+    play_animated_loading_bar("🛑 DISCONNECTING FROM MIKRONETPLUS HUB CORE...", C_RED, duration=0.02)
     time.sleep(0.3)
+    
     slow_print(f"{C_GREEN}{C_BOLD}✨ Thank you for using MikroNetPlus CLI Manager! ✨{C_END}", 0.03, center=True)
     slow_print(f"{C_CYAN}📺 Remember to Subscribe & Like our videos on YouTube.{C_END}", 0.03, center=True)
     slow_print(f"{C_YELLOW}🚀 Stay secure, Stay connected.{C_END}", 0.04, center=True)
     
     print("\n" * 2)
-    time.sleep(0.8)
+    time.sleep(1.0)
     clear_screen()
 
 def show_big_banner():
@@ -241,13 +243,15 @@ def wizard_build_tunnel(path, tunnel_type, default_data=None):
     if not local_v6 or not remote_v6:
         print(f"\n{C_RED}❌ Invalid IPv4 Format!{C_END}"); input("\nPress Enter..."); return
             
-    print(f"\n{C_BOLD}📊 Preview Configuration [{t_name}]:{C_END}")
-    print(f"  ▫️ Local IP  : {C_GREEN}{local}{C_END}")
-    print(f"  ▫️ Remote IP : {C_GREEN}{remote}{C_END}")
-    print(f"  ▫️ Tunnel IP : {C_GREEN}{tunnel_cidr}{C_END}")
-    print("─"*60)
+    print(f"\n{C_BOLD}╔" + "═"*58 + "╗")
+    print(f"║ 📊 PREVIEW CONFIGURATION: {C_CYAN}{t_name.ljust(26)}{C_END} ║")
+    print(f"╠" + "═"*58 + "╣")
+    print(f"║  ▫️ Local Public IP : {C_GREEN}{local.ljust(35)}{C_END}║")
+    print(f"║  ▫️ Remote Public IP: {C_GREEN}{remote.ljust(35)}{C_END}║")
+    print(f"║  ▫️ Tunnel Client IP: {C_GREEN}{tunnel_cidr.ljust(35)}{C_END}║")
+    print(f"╚" + "═"*58 + f"╝{C_END}")
     
-    if input(f"{C_BOLD}🤔 Apply this configuration? (y/n): {C_END}").strip().lower() == 'y':
+    if input(f"\n{C_BOLD}🤔 Apply this configuration to Netplan? (y/n): {C_END}").strip().lower() == 'y':
         if tunnel_type == "Regular":
             yaml_content = f"# NAME: {t_name}\nnetwork:\n  version: 2\n  tunnels:\n    gre-to-mikro:\n      mode: gre\n      local: {local}\n      remote: {remote}\n      addresses:\n        - {tunnel_cidr}\n"
             iface = "gre-to-mikro"
@@ -400,7 +404,7 @@ def status_and_diagnostic_hub():
         subprocess.run(["ping", "-c", "4", target_ip])
         input(f"\nPress Enter to return to main menu...")
 
-# TRIGGER METRIC INTRO
+# TRIGGER PERFECT PARALLEL INTRO
 play_animated_intro()
 
 # Main CLI Loop
